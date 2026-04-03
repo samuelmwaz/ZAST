@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZAST Solutions / Tech — Zed Aura Stream Tech</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00e5ff;
+    --blue: #1565ff;
+    --teal: #00bcd4;
+    --glow-cyan: rgba(0,229,255,0.6);
+    --glow-blue: rgba(21,101,255,0.4);
+    --dark: #080c10;
+    --darker: #040608;
+    --surface: rgba(255,255,255,0.03);
+    --border: rgba(0,229,255,0.15);
+    --text: #e8f4f8;
+    --muted: rgba(232,244,248,0.5);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--darker);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: 0.3;
+  }
+
+  /* ─── BACKGROUND AURORA ─── */
+  .aurora {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    overflow: hidden;
+  }
+  .aurora-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: drift 12s ease-in-out infinite alternate;
+  }
+  .aurora-orb:nth-child(1) {
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%);
+    top: -100px; left: -100px;
+    animation-delay: 0s;
+  }
+  .aurora-orb:nth-child(2) {
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(21,101,255,0.10) 0%, transparent 70%);
+    bottom: -150px; right: -100px;
+    animation-delay: -4s;
+  }
+  .aurora-orb:nth-child(3) {
+    width: 350px; height: 350px;
+    background: radial-gradient(circle, rgba(0,188,212,0.08) 0%, transparent 70%);
+    top: 40%; left: 50%;
+    animation-delay: -8s;
+  }
+  @keyframes drift {
+    from { transform: translate(0,0) scale(1); }
+    to   { transform: translate(40px, 30px) scale(1.1); }
+  }
+
+  /* ─── GRID LINES ─── */
+  .grid-bg {
+    position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 60px;
+    background: linear-gradient(180deg, rgba(4,6,8,0.95) 0%, transparent 100%);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--border);
+    animation: fadeDown 0.8s ease forwards;
+  }
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .nav-logo {
+    display: flex; align-items: center; gap: 12px;
+    text-decoration: none;
+  }
+  .nav-logo-mark {
+    width: 36px; height: 36px;
+    position: relative;
+  }
+  .nav-logo-mark svg { width: 100%; height: 100%; }
+  .nav-brand {
+    font-family: 'Orbitron', monospace;
+    font-weight: 700; font-size: 1.4rem;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 60%, var(--teal) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links { display: flex; gap: 36px; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.82rem; font-weight: 500;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    transition: color 0.3s;
+    position: relative;
+  }
+  .nav-links a::after {
+    content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px;
+    background: var(--cyan); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .nav-links a:hover { color: var(--cyan); }
+  .nav-links a:hover::after { transform: scaleX(1); }
+
+  .nav-cta {
+    padding: 10px 24px;
+    background: transparent;
+    border: 1px solid var(--cyan);
+    color: var(--cyan) !important;
+    border-radius: 2px;
+    font-family: 'Orbitron', monospace;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s !important;
+  }
+  .nav-cta:hover {
+    background: rgba(0,229,255,0.08) !important;
+    box-shadow: 0 0 20px var(--glow-cyan), inset 0 0 10px rgba(0,229,255,0.05);
+    color: #fff !important;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding: 120px 60px 80px;
+    overflow: hidden;
+  }
+
+  .hero-content {
+    max-width: 680px;
+    animation: heroIn 1s 0.3s ease both;
+  }
+  @keyframes heroIn { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+
+  .hero-eyebrow {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.72rem; font-weight: 400;
+    letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-eyebrow::before {
+    content: ''; display: inline-block;
+    width: 40px; height: 1px; background: var(--cyan);
+    box-shadow: 0 0 6px var(--cyan);
+  }
+
+  .hero-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(3rem, 6vw, 5.5rem);
+    font-weight: 900;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .hero-title .line1 {
+    background: linear-gradient(135deg, #ffffff 0%, #d0eef5 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+  }
+  .hero-title .line2 {
+    background: linear-gradient(135deg, var(--cyan) 0%, var(--teal) 50%, var(--blue) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(0,229,255,0.4));
+  }
+
+  .hero-sub {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem; font-weight: 400;
+    letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted);
+    margin: 16px 0 32px;
+  }
+
+  .hero-desc {
+    font-size: 1.05rem; font-weight: 300; line-height: 1.8;
+    color: rgba(232,244,248,0.7);
+    max-width: 520px;
+    margin-bottom: 48px;
+  }
+
+  .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+
+  .btn-primary {
+    padding: 16px 40px;
+    background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
+    border: none; border-radius: 2px;
+    color: #fff; font-family: 'Orbitron', monospace;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 30px rgba(0,229,255,0.3);
+    position: relative; overflow: hidden;
+  }
+  .btn-primary::before {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(0,229,255,0.5); }
+  .btn-primary:hover::before { opacity: 1; }
+
+  .btn-ghost {
+    padding: 16px 40px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--muted); font-family: 'Orbitron', monospace;
+    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
+  }
+  .btn-ghost:hover {
+    border-color: var(--cyan); color: var(--cyan);
+    box-shadow: 0 0 20px rgba(0,229,255,0.1);
+  }
+
+  /* Hero visual */
+  .hero-visual {
+    position: absolute; right: -80px; top: 50%; transform: translateY(-50%);
+    width: 600px; height: 600px;
+    animation: heroVisualIn 1s 0.6s ease both;
+  }
+  @keyframes heroVisualIn { from { opacity: 0; transform: translateY(-50%) scale(0.8); } to { opacity: 1; transform: translateY(-50%) scale(1); } }
+
+  .hero-visual-inner {
+    width: 100%; height: 100%; position: relative;
+  }
+  .ring {
+    position: absolute; border-radius: 50%;
+    border: 1px solid;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: spin linear infinite;
+  }
+  .ring-1 { width: 420px; height: 420px; border-color: rgba(0,229,255,0.12); animation-duration: 30s; }
+  .ring-2 { width: 320px; height: 320px; border-color: rgba(0,229,255,0.18); animation-duration: 22s; animation-direction: reverse; }
+  .ring-3 { width: 220px; height: 220px; border-color: rgba(21,101,255,0.25); animation-duration: 15s; }
+  .ring-4 { width: 120px; height: 120px; border-color: rgba(0,229,255,0.4); animation-duration: 8s; animation-direction: reverse; }
+
+  .ring::before {
+    content: ''; position: absolute;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
+    top: 50%; left: 0; transform: translateY(-50%);
+  }
+
+  @keyframes spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+  .core {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px; height: 60px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,229,255,0.9) 0%, rgba(21,101,255,0.6) 50%, transparent 80%);
+    box-shadow: 0 0 40px var(--cyan), 0 0 80px rgba(0,229,255,0.4), 0 0 120px rgba(0,229,255,0.2);
+    animation: pulse 3s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 40px var(--cyan), 0 0 80px rgba(0,229,255,0.4); }
+    50% { transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 0 60px var(--cyan), 0 0 120px rgba(0,229,255,0.5); }
+  }
+
+  /* ─── STATS ─── */
+  .stats-bar {
+    position: relative; z-index: 1;
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,229,255,0.02);
+    animation: fadeUp 0.8s 0.8s ease both;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .stat {
+    padding: 40px 60px;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-number {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.8rem; font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1; margin-bottom: 8px;
+  }
+  .stat-label {
+    font-size: 0.78rem; font-weight: 400;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  /* ─── SECTION ─── */
+  section { position: relative; z-index: 1; padding: 100px 60px; }
+
+  .section-label {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.68rem; font-weight: 400; letter-spacing: 0.35em;
+    text-transform: uppercase; color: var(--cyan);
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before {
+    content: ''; width: 24px; height: 1px;
+    background: var(--cyan); box-shadow: 0 0 6px var(--cyan);
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 700;
+    line-height: 1.15; margin-bottom: 20px;
+    color: #fff;
+  }
+  .section-title span {
+    background: linear-gradient(135deg, var(--cyan), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .section-desc {
+    font-size: 1rem; font-weight: 300; line-height: 1.8;
+    color: rgba(232,244,248,0.6); max-width: 540px;
+  }
+
+  /* ─── SERVICES ─── */
+  .services-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    margin-top: 60px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .service-card {
+    background: var(--darker);
+    padding: 48px 40px;
+    transition: background 0.4s;
+    position: relative; overflow: hidden;
+  }
+  .service-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    transform: scaleX(0); transform-origin: center;
+    transition: transform 0.4s;
+  }
+  .service-card:hover { background: rgba(0,229,255,0.03); }
+  .service-card:hover::before { transform: scaleX(1); }
+
+  .service-icon {
+    width: 52px; height: 52px; margin-bottom: 24px;
+    background: rgba(0,229,255,0.08);
+    border: 1px solid rgba(0,229,255,0.2);
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .service-icon svg { width: 24px; height: 24px; stroke: var(--cyan); fill: none; stroke-width: 1.5; }
+
+  .service-num {
+    font-family: 'Orbitron', monospace; font-size: 0.65rem;
+    letter-spacing: 0.2em; color: rgba(0,229,255,0.3);
+    margin-bottom: 12px;
+  }
+  .service-title {
+    font-family: 'Orbitron', monospace; font-size: 0.98rem; font-weight: 600;
+    letter-spacing: 0.05em; color: #fff;
+    margin-bottom: 14px;
+  }
+  .service-desc {
+    font-size: 0.88rem; font-weight: 300; line-height: 1.75;
+    color: var(--muted);
+  }
+
+  /* ─── ABOUT SPLIT ─── */
+  .about-split {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+    align-items: center;
+  }
+  .about-visual {
+    position: relative; height: 480px;
+  }
+  .about-card {
+    position: absolute;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    padding: 28px;
+    border-radius: 2px;
+  }
+  .about-card:nth-child(1) { top: 0; left: 0; right: 80px; }
+  .about-card:nth-child(2) { top: 100px; right: 0; left: 80px; background: rgba(0,229,255,0.04); border-color: rgba(0,229,255,0.25); }
+  .about-card:nth-child(3) { bottom: 0; left: 0; right: 80px; }
+
+  .about-card-label {
+    font-family: 'Orbitron', monospace; font-size: 0.65rem;
+    letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--cyan); margin-bottom: 8px;
+  }
+  .about-card-value {
+    font-family: 'Orbitron', monospace; font-size: 1.6rem;
+    font-weight: 700; color: #fff;
+  }
+  .about-card-sub {
+    font-size: 0.82rem; color: var(--muted); margin-top: 4px;
+  }
+
+  /* ─── HOW IT WORKS ─── */
+  .process-steps {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0; margin-top: 60px;
+    position: relative;
+  }
+  .process-steps::before {
+    content: ''; position: absolute;
+    top: 32px; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.3;
+  }
+
+  .process-step { padding: 0 24px; text-align: center; }
+  .step-circle {
+    width: 64px; height: 64px; border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    position: relative;
+    background: rgba(0,229,255,0.04);
+    transition: border-color 0.3s, background 0.3s;
+  }
+  .step-circle:hover { border-color: var(--cyan); background: rgba(0,229,255,0.1); }
+  .step-num {
+    font-family: 'Orbitron', monospace; font-size: 1.1rem;
+    font-weight: 700; color: var(--cyan);
+  }
+  .step-title {
+    font-family: 'Orbitron', monospace; font-size: 0.82rem;
+    font-weight: 600; letter-spacing: 0.05em; color: #fff;
+    margin-bottom: 10px;
+  }
+  .step-desc {
+    font-size: 0.82rem; color: var(--muted); line-height: 1.7;
+  }
+
+  /* ─── CTA BANNER ─── */
+  .cta-banner {
+    margin: 0 60px;
+    border: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(0,229,255,0.04) 0%, rgba(21,101,255,0.04) 100%);
+    padding: 80px;
+    text-align: center;
+    position: relative; overflow: hidden;
+  }
+  .cta-banner::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,229,255,0.06) 0%, transparent 70%);
+  }
+  .cta-banner-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700;
+    color: #fff; margin-bottom: 16px; position: relative;
+  }
+  .cta-banner-sub {
+    font-size: 1rem; color: var(--muted);
+    margin-bottom: 40px; position: relative;
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    position: relative; z-index: 1;
+    padding: 60px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 24px;
+  }
+  .footer-brand {
+    font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700;
+    letter-spacing: 0.12em;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .footer-links { display: flex; gap: 32px; }
+  .footer-links a {
+    font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); text-decoration: none;
+    transition: color 0.3s;
+  }
+  .footer-links a:hover { color: var(--cyan); }
+  .footer-copy {
+    font-size: 0.75rem; color: rgba(232,244,248,0.3);
+    letter-spacing: 0.08em;
+  }
+
+  /* ─── SCROLL FADE-IN ─── */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.8s, transform 0.8s;
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+
+  @media (max-width: 1024px) {
+    nav, section, footer { padding-left: 32px; padding-right: 32px; }
+    .hero { padding-left: 32px; }
+    .hero-visual { display: none; }
+    .services-grid { grid-template-columns: 1fr 1fr; }
+    .about-split { grid-template-columns: 1fr; }
+    .about-visual { display: none; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .process-steps { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+    .cta-banner { margin: 0 32px; padding: 48px 32px; }
+  }
+  @media (max-width: 600px) {
+    .services-grid { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .stat { padding: 28px 24px; }
+    .process-steps { grid-template-columns: 1fr; }
+    nav { padding: 16px 20px; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="aurora">
+  <div class="aurora-orb"></div>
+  <div class="aurora-orb"></div>
+  <div class="aurora-orb"></div>
+</div>
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-mark">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#00e5ff"/>
+            <stop offset="100%" stop-color="#1565ff"/>
+          </linearGradient>
+        </defs>
+        <path d="M18 4 C10 8, 6 16, 10 24 C14 30, 22 32, 26 26 C30 20, 28 12, 22 8 C20 6, 19 4, 18 4Z" fill="url(#lg)" opacity="0.8"/>
+        <circle cx="18" cy="18" r="3" fill="white" opacity="0.9"/>
+        <path d="M18 18 L28 10" stroke="url(#lg)" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <span class="nav-brand">ZAST</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#services">Services</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#contact" class="nav-cta">Get Started</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-content">
+    <div class="hero-eyebrow">Zed Aura Stream Tech</div>
+    <h1 class="hero-title">
+      <span class="line1">NEXT-GEN</span>
+      <span class="line2">SOLUTIONS</span>
+    </h1>
+    <p class="hero-sub">Stream · Innovate · Transcend</p>
+    <p class="hero-desc">
+      ZAST delivers cutting-edge technology solutions that power businesses forward. From intelligent systems to seamless digital infrastructure — we build what tomorrow demands.
+    </p>
+    <div class="hero-actions">
+      <a href="#services" class="btn-primary">Explore Services</a>
+      <a href="#contact" class="btn-ghost">Get In Touch</a>
+    </div>
+  </div>
+
+  <div class="hero-visual">
+    <div class="hero-visual-inner">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+      <div class="ring ring-4"></div>
+      <div class="core"></div>
+    </div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-number">200+</div>
+    <div class="stat-label">Projects Delivered</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">98%</div>
+    <div class="stat-label">Client Satisfaction</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">50+</div>
+    <div class="stat-label">Tech Partners</div>
+  </div>
+  <div class="stat">
+    <div class="stat-number">24/7</div>
+    <div class="stat-label">Support & Uptime</div>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="reveal">
+    <div class="section-label">What We Do</div>
+    <h2 class="section-title">Technology That <span>Moves Fast</span></h2>
+    <p class="section-desc">End-to-end digital solutions designed for scale, speed, and precision. Built for the demands of tomorrow.</p>
+  </div>
+
+  <div class="services-grid reveal">
+    <div class="service-card">
+      <div class="service-num">01</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="service-title">Digital Infrastructure</div>
+      <div class="service-desc">Scalable cloud architectures and streaming pipelines engineered for enterprise-grade performance and zero downtime.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">02</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
+      </div>
+      <div class="service-title">AI & Automation</div>
+      <div class="service-desc">Intelligent systems and machine learning solutions that automate complexity and unlock data-driven decision making.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">03</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="service-title">Real-Time Streaming</div>
+      <div class="service-desc">Ultra-low latency data streams and live event processing systems built for high-throughput environments.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">04</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+      </div>
+      <div class="service-title">Web & App Development</div>
+      <div class="service-desc">High-performance applications with exceptional user experiences — web, mobile, and beyond.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">05</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="service-title">Cybersecurity</div>
+      <div class="service-desc">Comprehensive security audits, threat modeling, and zero-trust frameworks protecting your digital assets.</div>
+    </div>
+    <div class="service-card">
+      <div class="service-num">06</div>
+      <div class="service-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="service-title">Tech Consulting</div>
+      <div class="service-desc">Strategic technology advisory to align your digital transformation with measurable business outcomes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about" style="background: rgba(0,229,255,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="about-split">
+    <div class="reveal">
+      <div class="section-label">Who We Are</div>
+      <h2 class="section-title">Built on <span>Aura</span>, Powered by Stream</h2>
+      <p class="section-desc" style="margin-bottom: 32px;">
+        ZAST — Zed Aura Stream Tech — was born from a conviction that technology should flow seamlessly, intelligently, and powerfully. We are a team of engineers, strategists, and visionaries bridging the gap between bold ideas and production-ready systems.
+      </p>
+      <p class="section-desc">
+        Operating from Zambia and reaching across Africa and beyond, we bring global-standard tech solutions to the markets that need them most.
+      </p>
+    </div>
+    <div class="about-visual reveal">
+      <div class="about-card">
+        <div class="about-card-label">Founded</div>
+        <div class="about-card-value">ZAST</div>
+        <div class="about-card-sub">Zed Aura Stream Tech — Zambia</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-label">Mission</div>
+        <div class="about-card-value" style="font-size:1.1rem; line-height:1.4;">Stream Innovation. Build the Future.</div>
+        <div class="about-card-sub">Delivering tomorrow's technology today</div>
+      </div>
+      <div class="about-card">
+        <div class="about-card-label">Reach</div>
+        <div class="about-card-value">Africa+</div>
+        <div class="about-card-sub">Global reach, local expertise</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section id="process">
+  <div class="reveal" style="text-align:center; max-width: 600px; margin: 0 auto 0;">
+    <div class="section-label" style="justify-content: center;">How We Work</div>
+    <h2 class="section-title">From Concept to <span>Launch</span></h2>
+    <p class="section-desc" style="margin: 0 auto;">A streamlined process that turns your vision into a high-performance reality — fast, transparent, and precise.</p>
+  </div>
+  <div class="process-steps reveal">
+    <div class="process-step">
+      <div class="step-circle"><span class="step-num">01</span></div>
+      <div class="step-title">Discover</div>
+      <div class="step-desc">Deep-dive into your goals, constraints, and opportunities to define the right strategy.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-circle"><span class="step-num">02</span></div>
+      <div class="step-title">Architect</div>
+      <div class="step-desc">Design scalable, future-proof technical blueprints aligned to your business objectives.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-circle"><span class="step-num">03</span></div>
+      <div class="step-title">Build</div>
+      <div class="step-desc">Agile development with continuous delivery, testing, and transparent progress tracking.</div>
+    </div>
+    <div class="process-step">
+      <div class="step-circle"><span class="step-num">04</span></div>
+      <div class="step-title">Launch & Scale</div>
+      <div class="step-desc">Deploy with confidence, then grow — backed by monitoring, support, and optimization.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div id="contact">
+  <div class="cta-banner reveal">
+    <h2 class="cta-banner-title">Ready to Build the Future?</h2>
+    <p class="cta-banner-sub">Partner with ZAST and bring your most ambitious technology vision to life.</p>
+    <a href="mailto:hello@zastsolutions.tech" class="btn-primary">Start a Project</a>
+  </div>
+</div>
+
+<div style="padding: 60px 0 20px;"></div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">ZAST Solutions / Tech</div>
+  <div class="footer-links">
+    <a href="#services">Services</a>
+    <a href="#about">About</a>
+    <a href="#process">Process</a>
+    <a href="#contact">Contact</a>
+  </div>
+  <div class="footer-copy">© 2025 Zed Aura Stream Tech. All rights reserved.</div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 100);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Smooth nav link scrolling
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href');
+      if (id === '#') return;
+      const el = document.querySelector(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+</script>
+</body>
+</html>
