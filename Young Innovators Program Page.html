@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Young Innovators Program — ZAST</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --c: #00ffe7;
+  --c2: #0055ff;
+  --c3: #7b2fff;
+  --bg: #04050a;
+  --bg2: #070912;
+  --surface: rgba(255,255,255,0.025);
+  --border: rgba(0,255,231,0.1);
+  --border2: rgba(0,255,231,0.18);
+  --text: #dce8ec;
+  --muted: rgba(220,232,236,0.45);
+  --glow: rgba(0,255,231,0.5);
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
+
+/* ── CURSOR ── */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--c);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.08s, width 0.2s, height 0.2s, opacity 0.2s;
+  mix-blend-mode: screen;
+}
+.cursor-trail {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(0,255,231,0.3);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  transform: translate(-50%, -50%);
+  transition: left 0.12s, top 0.12s;
+}
+
+/* ── NOISE + BG ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+.bg-wrap {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-orb {
+  position: absolute; border-radius: 50%; filter: blur(100px);
+}
+.bg-orb-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(0,255,231,0.07) 0%, transparent 70%);
+  top: -200px; left: -200px;
+  animation: orbFloat1 18s ease-in-out infinite alternate;
+}
+.bg-orb-2 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,85,255,0.07) 0%, transparent 70%);
+  bottom: -150px; right: -100px;
+  animation: orbFloat2 22s ease-in-out infinite alternate;
+}
+.bg-orb-3 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(123,47,255,0.05) 0%, transparent 70%);
+  top: 45%; left: 55%;
+  animation: orbFloat1 16s ease-in-out infinite alternate-reverse;
+}
+@keyframes orbFloat1 { from { transform: translate(0,0) scale(1); } to { transform: translate(60px, 40px) scale(1.1); } }
+@keyframes orbFloat2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-40px, -60px) scale(1.15); } }
+
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,255,231,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,231,0.025) 1px, transparent 1px);
+  background-size: 70px 70px;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 0 60px;
+  height: 72px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(4,5,10,0.8);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid var(--border);
+  animation: navIn 0.6s ease both;
+}
+@keyframes navIn { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: translateY(0); } }
+
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; user-select: none;
+}
+.logo-hex { width: 34px; height: 34px; }
+.logo-hex svg { width: 100%; height: 100%; }
+.nav-wordmark {
+  font-family: var(--font-display);
+  font-size: 1.3rem; font-weight: 800;
+  letter-spacing: 0.06em; color: #fff;
+}
+.nav-wordmark em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--c), var(--c2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.nav-links {
+  display: flex; align-items: center; gap: 4px; list-style: none;
+}
+.nav-links a {
+  padding: 6px 13px;
+  color: var(--muted); text-decoration: none;
+  font-size: 0.78rem; font-weight: 400;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  font-family: var(--font-mono);
+  transition: color 0.2s, background 0.2s;
+  border-radius: 3px;
+}
+.nav-links a:hover { color: var(--c); background: rgba(0,255,231,0.06); }
+.nav-pill {
+  padding: 8px 20px !important;
+  background: rgba(0,255,231,0.07) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--c) !important;
+  border-radius: 100px !important;
+  transition: background 0.2s, box-shadow 0.2s !important;
+}
+.nav-pill:hover {
+  background: rgba(0,255,231,0.14) !important;
+  box-shadow: 0 0 16px rgba(0,255,231,0.2) !important;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 100px 60px 60px;
+  gap: 60px;
+  overflow: hidden;
+}
+
+.hero-left { animation: slideLeft 0.9s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes slideLeft { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px;
+  border: 1px solid rgba(0,255,231,0.2);
+  border-radius: 100px;
+  background: rgba(0,255,231,0.04);
+  font-family: var(--font-mono);
+  font-size: 0.7rem; color: var(--c);
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 32px;
+}
+.hero-tag::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c); box-shadow: 0 0 8px var(--c);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.hero-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 5.5vw, 5.5rem);
+  font-weight: 800; line-height: 0.92;
+  letter-spacing: -0.03em; margin-bottom: 28px;
+}
+.hero-h1 .w1 { display: block; color: #fff; }
+.hero-h1 .w2 {
+  display: block;
+  background: linear-gradient(120deg, var(--c) 0%, var(--c2) 60%, var(--c3) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(0,255,231,0.35));
+}
+.hero-h1 .w3 { display: block; color: rgba(255,255,255,0.25); font-weight: 400; font-style: italic; font-size: 0.6em; letter-spacing: 0.05em; }
+
+.hero-desc {
+  font-size: 1.05rem; font-weight: 300; line-height: 1.85;
+  color: rgba(220,232,236,0.65); max-width: 480px;
+  margin-bottom: 44px;
+}
+
+.hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, var(--c2), var(--c));
+  border: none; border-radius: 4px;
+  color: #04050a; font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;
+  text-decoration: none; cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 4px 32px rgba(0,255,231,0.25);
+  position: relative; overflow: hidden;
+}
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+  opacity: 0; transition: opacity 0.25s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 48px rgba(0,255,231,0.4); }
+.btn-primary:hover::after { opacity: 1; }
+
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: var(--muted); font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em;
+  text-decoration: none; cursor: pointer;
+  transition: border-color 0.25s, color 0.25s, background 0.25s;
+}
+.btn-outline:hover { border-color: var(--c); color: var(--c); background: rgba(0,255,231,0.04); }
+
+/* ── HERO VISUAL ── */
+.hero-right {
+  display: flex; align-items: center; justify-content: center;
+  animation: slideRight 0.9s 0.35s cubic-bezier(0.16,1,0.3,1) both;
+  position: relative;
+}
+@keyframes slideRight { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
+
+.hero-viz {
+  position: relative; width: 500px; height: 500px;
+}
+.viz-ring {
+  position: absolute; border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid;
+  animation: spin linear infinite;
+}
+.viz-ring::before {
+  content: ''; position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  top: 50%; left: -4px; transform: translateY(-50%);
+}
+.viz-ring:nth-child(1) { width: 460px; height: 460px; border-color: rgba(0,255,231,0.08); animation-duration: 40s; }
+.viz-ring:nth-child(1)::before { background: var(--c); box-shadow: 0 0 12px var(--c), 0 0 24px var(--c); }
+.viz-ring:nth-child(2) { width: 360px; height: 360px; border-color: rgba(0,85,255,0.12); animation-duration: 28s; animation-direction: reverse; }
+.viz-ring:nth-child(2)::before { background: var(--c2); box-shadow: 0 0 12px var(--c2); }
+.viz-ring:nth-child(3) { width: 260px; height: 260px; border-color: rgba(123,47,255,0.18); animation-duration: 18s; }
+.viz-ring:nth-child(3)::before { background: var(--c3); box-shadow: 0 0 12px var(--c3); }
+.viz-ring:nth-child(4) { width: 160px; height: 160px; border-color: rgba(0,255,231,0.3); animation-duration: 10s; animation-direction: reverse; }
+.viz-ring:nth-child(4)::before { background: var(--c); box-shadow: 0 0 16px var(--c); }
+@keyframes spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+
+.viz-core {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,231,0.95) 0%, rgba(0,85,255,0.6) 50%, transparent 80%);
+  box-shadow: 0 0 50px var(--c), 0 0 100px rgba(0,255,231,0.3), 0 0 160px rgba(0,255,231,0.15);
+  animation: corePulse 4s ease-in-out infinite;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 0.55rem; font-weight: 800;
+  color: #000; letter-spacing: 0.08em; text-align: center; line-height: 1.4;
+}
+@keyframes corePulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1); box-shadow: 0 0 50px var(--c), 0 0 100px rgba(0,255,231,0.3); }
+  50% { transform: translate(-50%,-50%) scale(1.15); box-shadow: 0 0 70px var(--c), 0 0 140px rgba(0,255,231,0.4); }
+}
+
+.viz-label {
+  position: absolute;
+  font-family: var(--font-mono); font-size: 0.58rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--c); white-space: nowrap;
+  background: rgba(4,5,10,0.8);
+  padding: 4px 8px; border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 3px;
+}
+.viz-label-1 { top: 9%; left: 50%; transform: translateX(-50%); }
+.viz-label-2 { top: 50%; right: 4%; transform: translateY(-50%); }
+.viz-label-3 { bottom: 11%; left: 50%; transform: translateX(-50%); }
+.viz-label-4 { top: 50%; left: 4%; transform: translateY(-50%); }
+
+/* ── TICKER ── */
+.ticker {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,255,231,0.015);
+  overflow: hidden; padding: 14px 0;
+}
+.ticker-track {
+  display: flex; width: max-content;
+  animation: ticker 35s linear infinite;
+}
+.ticker-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 40px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--muted);
+  white-space: nowrap;
+}
+.ticker-sep { color: var(--c); opacity: 0.4; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── STATS ── */
+.stats {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.stat-cell {
+  padding: 48px 52px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+  transition: background 0.3s;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-cell::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--c), transparent);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s;
+}
+.stat-cell:hover { background: rgba(0,255,231,0.025); }
+.stat-cell:hover::before { transform: scaleX(1); }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 3.2rem; font-weight: 800;
+  line-height: 1; margin-bottom: 8px;
+  background: linear-gradient(135deg, #fff 0%, var(--c) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-lbl {
+  font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); font-family: var(--font-mono);
+}
+
+/* ── SECTIONS ── */
+section { position: relative; z-index: 1; padding: 110px 60px; }
+
+.section-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--c); margin-bottom: 18px;
+}
+.section-eyebrow::before {
+  content: ''; width: 28px; height: 1px;
+  background: linear-gradient(90deg, var(--c), transparent);
+  box-shadow: 0 0 6px var(--c);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 3.2rem);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.02em; color: #fff;
+  margin-bottom: 20px;
+}
+.section-title .hl {
+  background: linear-gradient(120deg, var(--c), var(--c2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-body {
+  font-size: 1rem; font-weight: 300; line-height: 1.85;
+  color: rgba(220,232,236,0.6); max-width: 560px;
+}
+
+/* ── PILLARS (what you get) ── */
+.pillars-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  margin-top: 64px;
+}
+.pillar-card {
+  background: var(--bg);
+  padding: 48px 40px;
+  position: relative; overflow: hidden;
+  transition: background 0.35s;
+  cursor: default;
+}
+.pillar-card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--c2), var(--c));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.pillar-card:hover { background: rgba(0,255,231,0.025); }
+.pillar-card:hover::after { transform: scaleX(1); }
+.p-num {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.2em; color: rgba(0,255,231,0.25);
+  margin-bottom: 16px;
+}
+.p-icon {
+  width: 50px; height: 50px;
+  background: rgba(0,255,231,0.05);
+  border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 22px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.pillar-card:hover .p-icon { background: rgba(0,255,231,0.1); border-color: rgba(0,255,231,0.3); }
+.p-icon svg { width: 22px; height: 22px; stroke: var(--c); fill: none; stroke-width: 1.5; }
+.p-title {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  color: #fff; margin-bottom: 12px;
+}
+.p-desc {
+  font-size: 0.875rem; font-weight: 300; line-height: 1.75;
+  color: var(--muted);
+}
+.p-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 20px;
+  font-family: var(--font-mono); font-size: 0.6rem;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--c); opacity: 0.7;
+}
+.p-tag::before { content: '▸'; }
+
+/* ── HOW IT WORKS ── */
+.process-wrap {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+  align-items: start;
+}
+.process-steps {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+}
+.step-row {
+  background: var(--bg2); padding: 28px 32px;
+  display: flex; align-items: flex-start; gap: 20px;
+  position: relative; overflow: hidden;
+  transition: background 0.3s;
+}
+.step-row::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--c), var(--c2));
+  transform: scaleY(0); transform-origin: top;
+  transition: transform 0.3s;
+}
+.step-row:hover { background: rgba(0,255,231,0.03); }
+.step-row:hover::before { transform: scaleY(1); }
+.step-num {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(0,255,231,0.06);
+  border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 0.9rem; font-weight: 700; color: var(--c);
+}
+.step-lbl {
+  font-family: var(--font-mono); font-size: 0.65rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--c); margin-bottom: 6px;
+}
+.step-val {
+  font-family: var(--font-display); font-size: 1rem;
+  font-weight: 700; color: #fff; margin-bottom: 4px;
+}
+.step-sub { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+
+.process-info {
+  display: flex; flex-direction: column; gap: 28px;
+}
+.info-block {
+  padding: 28px 32px;
+  background: rgba(0,255,231,0.025);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--c);
+  border-radius: 0 4px 4px 0;
+}
+.info-block h4 {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  color: #fff; margin-bottom: 8px;
+}
+.info-block p { font-size: 0.875rem; color: var(--muted); line-height: 1.75; }
+
+/* ── ELIGIBILITY ── */
+.eligibility-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  margin-top: 64px; max-width: 900px;
+}
+.elig-cell {
+  background: var(--bg2); padding: 30px 32px;
+  display: flex; align-items: flex-start; gap: 16px;
+  transition: background 0.3s;
+}
+.elig-cell:hover { background: rgba(0,255,231,0.03); }
+.elig-check {
+  width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px;
+  background: rgba(0,255,231,0.08); border: 1px solid rgba(0,255,231,0.25);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.elig-check svg { width: 10px; height: 10px; stroke: var(--c); fill: none; stroke-width: 3; }
+.elig-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.elig-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.65; }
+
+/* ── TRACKS ── */
+.tracks-header { text-align: center; max-width: 700px; margin: 0 auto 64px; }
+.tracks-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.track-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px; padding: 40px 32px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.3s, transform 0.3s;
+}
+.track-card:hover { border-color: rgba(0,255,231,0.3); transform: translateY(-4px); }
+.track-accent {
+  position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.track-card:nth-child(1) .track-accent { background: linear-gradient(90deg, var(--c), var(--c2)); }
+.track-card:nth-child(2) .track-accent { background: linear-gradient(90deg, var(--c2), var(--c3)); }
+.track-card:nth-child(3) .track-accent { background: linear-gradient(90deg, var(--c3), var(--c)); }
+.track-icon {
+  width: 52px; height: 52px;
+  background: rgba(0,255,231,0.05); border: 1px solid rgba(0,255,231,0.12);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+}
+.track-icon svg { width: 24px; height: 24px; stroke: var(--c); fill: none; stroke-width: 1.5; }
+.track-name {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 700;
+  color: #fff; margin-bottom: 10px;
+}
+.track-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.75; margin-bottom: 20px; }
+.track-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.track-list li {
+  font-size: 0.8rem; color: var(--muted);
+  display: flex; align-items: center; gap: 8px;
+}
+.track-list li::before { content: '▸'; color: var(--c); font-size: 0.65rem; }
+
+/* ── ROADMAP ── */
+.roadmap-intro { text-align: center; max-width: 680px; margin: 0 auto 64px; }
+.roadmap-steps {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0; position: relative;
+}
+.roadmap-line {
+  position: absolute; top: 36px; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,255,231,0.2) 30%, rgba(0,255,231,0.2) 70%, transparent);
+}
+.pstep { padding: 0 24px; text-align: center; }
+.pstep-num {
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(0,255,231,0.03);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700; color: var(--c);
+  cursor: default;
+}
+.pstep-num:hover { border-color: var(--c); background: rgba(0,255,231,0.08); box-shadow: 0 0 24px rgba(0,255,231,0.2); }
+.pstep-title {
+  font-family: var(--font-display); font-size: 0.9rem; font-weight: 700;
+  color: #fff; margin-bottom: 10px;
+}
+.pstep-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+
+/* ── CTA BAND ── */
+.cta-band {
+  position: relative; overflow: hidden;
+  margin: 0 60px;
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 72px 80px;
+  background: linear-gradient(135deg, rgba(0,255,231,0.03) 0%, rgba(0,85,255,0.04) 50%, rgba(123,47,255,0.03) 100%);
+  text-align: center;
+}
+.cta-glow {
+  position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+  width: 500px; height: 300px;
+  background: radial-gradient(ellipse, rgba(0,255,231,0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cta-title {
+  font-family: var(--font-display); font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 800; color: #fff; margin-bottom: 16px; letter-spacing: -0.02em;
+}
+.cta-title .hl {
+  background: linear-gradient(120deg, var(--c), var(--c2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.cta-sub {
+  font-size: 1rem; color: var(--muted); margin-bottom: 36px;
+  font-weight: 300; line-height: 1.7; max-width: 500px; margin-left: auto; margin-right: auto;
+}
+.cta-btns { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 1;
+  padding: 48px 60px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  text-align: center;
+}
+.footer-brand {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 800;
+  letter-spacing: 0.06em; color: #fff;
+}
+.footer-links {
+  display: flex; gap: 28px; flex-wrap: wrap; justify-content: center;
+}
+.footer-links a {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--c); }
+.footer-copy {
+  font-size: 0.78rem; color: rgba(220,232,236,0.2);
+  font-family: var(--font-mono);
+}
+
+/* ── REVEAL ── */
+.reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
+.reveal.vis { opacity: 1; transform: translateY(0); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 0 24px; }
+  .nav-links { display: none; }
+  .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
+  .hero-right { display: none; }
+  section { padding: 70px 24px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .pillars-grid { grid-template-columns: 1fr; }
+  .process-wrap { grid-template-columns: 1fr; gap: 40px; }
+  .eligibility-grid { grid-template-columns: 1fr; }
+  .tracks-grid { grid-template-columns: 1fr; }
+  .roadmap-steps { grid-template-columns: repeat(2, 1fr); gap: 30px; }
+  .roadmap-line { display: none; }
+  .cta-band { margin: 0 24px; padding: 48px 32px; }
+  footer { padding: 40px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor" id="cur"></div>
+<div class="cursor-trail" id="curTrail"></div>
+
+<!-- BG -->
+<div class="bg-wrap">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
+</div>
+<div class="grid-bg"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <div class="logo-hex">
+      <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="17,2 30,9.5 30,24.5 17,32 4,24.5 4,9.5" stroke="#00ffe7" stroke-width="1.5" fill="rgba(0,255,231,0.06)"/>
+        <text x="17" y="22" text-anchor="middle" font-family="Syne,sans-serif" font-weight="800" font-size="10" fill="#00ffe7">Z</text>
+      </svg>
+    </div>
+    <span class="nav-wordmark">ZAST <em>/ YIP</em></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#pillars">Benefits</a></li>
+    <li><a href="#process">How It Works</a></li>
+    <li><a href="#tracks">Tracks</a></li>
+    <li><a href="#apply" class="nav-pill">Apply Now</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-tag">ZAST Young Innovators Program — 2026 Cohort</div>
+    <h1 class="hero-h1">
+      <span class="w1">Build What</span>
+      <span class="w2">Zambia Needs</span>
+      <span class="w3">Next</span>
+    </h1>
+    <p class="hero-desc">
+      A structured launchpad for Zambia's boldest young minds. Turn raw ideas into real products, gain mentorship from industry builders, and join a network that funds execution — not just potential.
+    </p>
+    <div class="hero-btns">
+      <a href="#apply" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Apply Now
+      </a>
+      <a href="#about" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Learn More
+      </a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-viz">
+      <div class="viz-ring"></div>
+      <div class="viz-ring"></div>
+      <div class="viz-ring"></div>
+      <div class="viz-ring"></div>
+      <div class="viz-core">YIP<br>2026</div>
+      <span class="viz-label viz-label-1">Mentor</span>
+      <span class="viz-label viz-label-2">Launch</span>
+      <span class="viz-label viz-label-3">Network</span>
+      <span class="viz-label viz-label-4">Build</span>
+    </div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <div class="ticker-item"><span>Applications Open</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Mentorship Program</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Real-World Projects</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>ZAST Ecosystem Access</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Zambia's Future Builders</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>2026 Cohort Now Open</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Idea To Product</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Funding Pathways</span><span class="ticker-sep">◆</span></div>
+    <!-- Duplicate for seamless loop -->
+    <div class="ticker-item"><span>Applications Open</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Mentorship Program</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Real-World Projects</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>ZAST Ecosystem Access</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Zambia's Future Builders</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>2026 Cohort Now Open</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Idea To Product</span><span class="ticker-sep">◆</span></div>
+    <div class="ticker-item"><span>Funding Pathways</span><span class="ticker-sep">◆</span></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-cell">
+    <div class="stat-num">50+</div>
+    <div class="stat-lbl">Innovators per Cohort</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">12</div>
+    <div class="stat-lbl">Weeks of Structured Build</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">100%</div>
+    <div class="stat-lbl">Execution-Focused</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">ZM</div>
+    <div class="stat-lbl">Built for Zambia, First</div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about" style="border-top: 1px solid var(--border);">
+  <div class="reveal">
+    <div class="section-eyebrow">About the Program</div>
+    <h2 class="section-title">Where Ideas Meet <span class="hl">Execution</span></h2>
+    <p class="section-body">
+      The ZAST Young Innovators Program (YIP) is a structured 12-week launchpad that takes young Zambians with big ideas and puts them in an environment where those ideas become real-world solutions. No fluff — just mentorship, tools, and accountability.
+    </p>
+    <p class="section-body" style="margin-top:16px;">
+      Selected innovators work within the ZAST ecosystem, gaining access to technical resources, experienced builders, and a network designed to fund and scale what works. Your ideas matter. Execution is everything.
+    </p>
+  </div>
+</section>
+
+<!-- PILLARS (What You Get) -->
+<section id="pillars" style="background: rgba(0,255,231,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="reveal">
+    <div class="section-eyebrow">What You Get</div>
+    <h2 class="section-title">Everything You Need to <span class="hl">Build & Launch</span></h2>
+    <p class="section-body">Six pillars designed to take you from idea to impact — no experience required, just ambition and commitment.</p>
+  </div>
+  <div class="pillars-grid reveal">
+    <div class="pillar-card">
+      <div class="p-num">01</div>
+      <div class="p-icon">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="p-title">Expert Mentorship</div>
+      <div class="p-desc">Get paired with experienced entrepreneurs, engineers, and business builders from within the ZAST network who guide you week by week.</div>
+      <div class="p-tag">1-on-1 Guidance</div>
+    </div>
+    <div class="pillar-card">
+      <div class="p-num">02</div>
+      <div class="p-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="p-title">Tech & Tools Access</div>
+      <div class="p-desc">Leverage ZAST's infrastructure, dev tools, and cloud resources to build without constraints. Focus on your product, not your budget.</div>
+      <div class="p-tag">Full Stack Support</div>
+    </div>
+    <div class="pillar-card">
+      <div class="p-num">03</div>
+      <div class="p-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <div class="p-title">Structured 12-Week Sprint</div>
+      <div class="p-desc">A proven programme structure — from idea validation and MVP development to pitch preparation and real-world launch.</div>
+      <div class="p-tag">Week-by-Week Milestones</div>
+    </div>
+    <div class="pillar-card">
+      <div class="p-num">04</div>
+      <div class="p-icon">
+        <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </div>
+      <div class="p-title">Funding Pathways</div>
+      <div class="p-desc">Top-performing teams get introduced to ZAST's investor network and partnerships. Proof of concept opens real funding doors.</div>
+      <div class="p-tag">Investor Introductions</div>
+    </div>
+    <div class="pillar-card">
+      <div class="p-num">05</div>
+      <div class="p-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div class="p-title">Ecosystem Integration</div>
+      <div class="p-desc">Your solution could be integrated directly into ZAST's live platforms — from Project Unified to Job Connect — giving your product a real user base from day one.</div>
+      <div class="p-tag">Live Deployment Potential</div>
+    </div>
+    <div class="pillar-card">
+      <div class="p-num">06</div>
+      <div class="p-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="p-title">Recognition & Certification</div>
+      <div class="p-desc">Graduates receive ZAST YIP certification, public recognition, and a permanent place in our alumni network — proof that you didn't just dream, you built.</div>
+      <div class="p-tag">Official ZAST Certification</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="process" style="border-top: 1px solid var(--border);">
+  <div class="reveal">
+    <div class="section-eyebrow">How It Works</div>
+    <h2 class="section-title">Your Journey from <span class="hl">Application to Launch</span></h2>
+  </div>
+  <div class="process-wrap" style="margin-top: 64px;">
+    <div class="process-steps reveal">
+      <div class="step-row">
+        <div class="step-num">01</div>
+        <div>
+          <div class="step-lbl">Step One</div>
+          <div class="step-val">Apply Online</div>
+          <div class="step-sub">Submit your idea and basic profile. No polished deck required — just your concept and your commitment.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">02</div>
+        <div>
+          <div class="step-lbl">Step Two</div>
+          <div class="step-val">Get Selected</div>
+          <div class="step-sub">A panel reviews all applications. Top ideas and strongest candidates are invited into the cohort.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">03</div>
+        <div>
+          <div class="step-lbl">Step Three</div>
+          <div class="step-val">Kickoff & Team Formation</div>
+          <div class="step-sub">Meet your mentors and fellow innovators. Build or join a team and lock in your focus area.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">04</div>
+        <div>
+          <div class="step-lbl">Step Four</div>
+          <div class="step-val">Build for 12 Weeks</div>
+          <div class="step-sub">Weekly sprints, check-ins, and milestone reviews keep you on track. Build fast, learn faster.</div>
+        </div>
+      </div>
+      <div class="step-row">
+        <div class="step-num">05</div>
+        <div>
+          <div class="step-lbl">Step Five</div>
+          <div class="step-val">Demo Day & Launch</div>
+          <div class="step-sub">Present your product to investors, industry leaders, and the ZAST community. The best projects get a path forward.</div>
+        </div>
+      </div>
+    </div>
+    <div class="process-info reveal">
+      <div class="info-block">
+        <h4>Who Should Apply?</h4>
+        <p>Young Zambians aged 18–30 with an idea worth building. Whether you're a student, a developer, a designer, or a first-time entrepreneur — if you're serious about building something real, this program is for you.</p>
+      </div>
+      <div class="info-block">
+        <h4>What Do You Need?</h4>
+        <p>No prior startup experience required. You need an idea, the drive to execute, and the discipline to show up every week. We provide everything else — tools, mentors, structure, and platform.</p>
+      </div>
+      <div class="info-block">
+        <h4>Time Commitment</h4>
+        <p>Expect to invest 15–20 hours per week over 12 weeks. This is intensive by design — the same commitment you'd give a job, directed at building your own future.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ELIGIBILITY -->
+<section style="background: rgba(0,255,231,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="reveal">
+    <div class="section-eyebrow">Eligibility</div>
+    <h2 class="section-title">Are You the Right <span class="hl">Fit?</span></h2>
+    <p class="section-body">We're looking for driven young Zambians who are ready to move from ideas to action. Here's what we look for in candidates.</p>
+  </div>
+  <div class="eligibility-grid reveal">
+    <div class="elig-cell">
+      <div class="elig-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <div class="elig-title">Age 18 – 30</div>
+        <div class="elig-desc">Open to young Zambians within this age range — students, graduates, and early-career professionals all welcome.</div>
+      </div>
+    </div>
+    <div class="elig-cell">
+      <div class="elig-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <div class="elig-title">Zambian Citizen or Resident</div>
+        <div class="elig-desc">This program is built for Zambia's future. Priority given to citizens and long-term residents committed to local impact.</div>
+      </div>
+    </div>
+    <div class="elig-cell">
+      <div class="elig-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <div class="elig-title">A Real Idea to Build</div>
+        <div class="elig-desc">You don't need a finished product — but you need a clear problem you want to solve and a vision for how to solve it.</div>
+      </div>
+    </div>
+    <div class="elig-cell">
+      <div class="elig-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <div class="elig-title">Commitment to 12 Weeks</div>
+        <div class="elig-desc">This isn't a casual programme. You must be ready to invest 15–20 hours per week for the full 12-week cohort.</div>
+      </div>
+    </div>
+    <div class="elig-cell">
+      <div class="elig-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <div class="elig-title">Any Background Welcome</div>
+        <div class="elig-desc">Tech, business, design, or none of the above — diverse skill sets make stronger teams. Prior startup experience is not required.</div>
+      </div>
+    </div>
+    <div class="elig-cell">
+      <div class="elig-check"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
+      <div>
+        <div class="elig-title">Local-Impact Mindset</div>
+        <div class="elig-desc">We prioritise ideas that solve real problems in Zambia — from logistics and employment to health, finance, and beyond.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRACKS -->
+<section id="tracks" style="border-top: 1px solid var(--border);">
+  <div class="tracks-header reveal">
+    <div class="section-eyebrow" style="justify-content:center;">Innovation Tracks</div>
+    <h2 class="section-title" style="text-align:center;">Choose Your <span class="hl">Build Track</span></h2>
+    <p class="section-body" style="margin:0 auto;">Three focused tracks aligned to Zambia's highest-impact sectors. Your idea, your direction — we provide the structure to get it built.</p>
+  </div>
+  <div class="tracks-grid reveal">
+    <div class="track-card">
+      <div class="track-accent"></div>
+      <div class="track-icon">
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 7h.01M11 7h.01M15 7h.01"/></svg>
+      </div>
+      <div class="track-name">Tech & Software</div>
+      <div class="track-desc">Build apps, platforms, and digital tools that solve real Zambian problems at scale.</div>
+      <ul class="track-list">
+        <li>Mobile and web applications</li>
+        <li>SaaS platforms and APIs</li>
+        <li>AI and data-driven tools</li>
+        <li>Fintech and digital wallets</li>
+      </ul>
+    </div>
+    <div class="track-card">
+      <div class="track-accent"></div>
+      <div class="track-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div class="track-name">Social & Community</div>
+      <div class="track-desc">Create solutions that directly improve livelihoods, education, health, or community infrastructure.</div>
+      <ul class="track-list">
+        <li>EdTech and learning tools</li>
+        <li>Health access platforms</li>
+        <li>Community organising systems</li>
+        <li>Agricultural solutions</li>
+      </ul>
+    </div>
+    <div class="track-card">
+      <div class="track-accent"></div>
+      <div class="track-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      </div>
+      <div class="track-name">Business & Operations</div>
+      <div class="track-desc">Formalise and scale informal businesses through smarter systems, logistics, and operational tools.</div>
+      <ul class="track-list">
+        <li>Logistics and supply chain</li>
+        <li>Employment and HR systems</li>
+        <li>E-commerce platforms</li>
+        <li>SME management tools</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP / TIMELINE -->
+<section style="background: rgba(0,255,231,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="roadmap-intro reveal">
+    <div class="section-eyebrow" style="justify-content:center;">Program Timeline</div>
+    <h2 class="section-title" style="text-align:center;">The <span class="hl">12-Week</span> Journey</h2>
+    <p class="section-body" style="margin:0 auto;">Four phases, each building on the last. From raw concept to launched product — here's how we get there together.</p>
+  </div>
+  <div class="roadmap-steps reveal">
+    <div class="roadmap-line"></div>
+    <div class="pstep">
+      <div class="pstep-num" style="border-color:var(--c); background:rgba(0,255,231,0.08); box-shadow:0 0 20px rgba(0,255,231,0.2);">01</div>
+      <div class="pstep-title">Discovery</div>
+      <div class="pstep-desc">Weeks 1–2. Validate your idea. Define the problem, identify your users, and stress-test assumptions with real feedback.</div>
+    </div>
+    <div class="pstep">
+      <div class="pstep-num">02</div>
+      <div class="pstep-title">Design & Plan</div>
+      <div class="pstep-desc">Weeks 3–4. Map your solution architecture, user journey, and MVP scope. Set the blueprint before you build.</div>
+    </div>
+    <div class="pstep">
+      <div class="pstep-num">03</div>
+      <div class="pstep-title">Build & Iterate</div>
+      <div class="pstep-desc">Weeks 5–10. The intensive build phase. Ship your MVP, gather real user feedback, and iterate fast with mentor guidance.</div>
+    </div>
+    <div class="pstep">
+      <div class="pstep-num">04</div>
+      <div class="pstep-title">Launch & Pitch</div>
+      <div class="pstep-desc">Weeks 11–12. Finalise your product, prepare your pitch, and present on Demo Day to investors and the ZAST community.</div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div id="apply" style="position:relative; z-index:1; padding: 80px 0 0;">
+  <div class="cta-band reveal">
+    <div class="cta-glow"></div>
+    <h2 class="cta-title">Ready to <span class="hl">Build Your Future?</span></h2>
+    <p class="cta-sub">Applications for the 2026 cohort are open. Seats are limited — don't wait to secure your place in Zambia's most ambitious innovation programme.</p>
+    <div class="cta-btns">
+      <a href="#" class="btn-primary" onclick="handleApply(event)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Apply Now — 2026 Cohort
+      </a>
+      <a href="mailto:info@zast.co.zm" class="btn-outline">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        Contact ZAST
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">ZAST Young Innovators Program</div>
+  <div class="footer-links">
+    <a href="#about">About</a>
+    <a href="#pillars">Benefits</a>
+    <a href="#process">How It Works</a>
+    <a href="#tracks">Tracks</a>
+    <a href="#apply">Apply</a>
+  </div>
+  <div class="footer-copy">© 2026 ZAST Solutions / Tech — Zed Aura Stream Tech. All rights reserved.</div>
+</footer>
+
+<script>
+// ── Custom cursor
+const cur = document.getElementById('cur');
+const trail = document.getElementById('curTrail');
+let mx = 0, my = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top = my + 'px';
+  setTimeout(() => {
+    trail.style.left = mx + 'px';
+    trail.style.top = my + 'px';
+  }, 80);
+});
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => { cur.style.width = '20px'; cur.style.height = '20px'; });
+  el.addEventListener('mouseleave', () => { cur.style.width = '12px'; cur.style.height = '12px'; });
+});
+
+// ── Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('vis'), i * 80);
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if (id === '#') return;
+    const el = document.querySelector(id);
+    if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+// ── Apply handler
+function handleApply(e) {
+  e.preventDefault();
+  alert("Applications opening soon — stay tuned!");
+}
+</script>
+</body>
+</html>
