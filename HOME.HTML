@@ -4,736 +4,951 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZAST Solutions / Tech — Zed Aura Stream Tech</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --cyan: #00e5ff;
-    --blue: #1565ff;
-    --teal: #00bcd4;
-    --glow-cyan: rgba(0,229,255,0.6);
-    --glow-blue: rgba(21,101,255,0.4);
-    --dark: #080c10;
-    --darker: #040608;
-    --surface: rgba(255,255,255,0.03);
-    --border: rgba(0,229,255,0.15);
-    --text: #e8f4f8;
-    --muted: rgba(232,244,248,0.5);
-  }
+:root {
+  --c: #00ffe7;
+  --c2: #0055ff;
+  --c3: #7b2fff;
+  --bg: #04050a;
+  --bg2: #070912;
+  --surface: rgba(255,255,255,0.025);
+  --border: rgba(0,255,231,0.1);
+  --border2: rgba(0,255,231,0.18);
+  --text: #dce8ec;
+  --muted: rgba(220,232,236,0.45);
+  --glow: rgba(0,255,231,0.5);
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+}
 
-  html { scroll-behavior: smooth; }
+/* ── CURSOR ── */
+.cursor {
+  width: 12px; height: 12px;
+  background: var(--c);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 99999;
+  transform: translate(-50%, -50%);
+  transition: transform 0.08s, width 0.2s, height 0.2s, opacity 0.2s;
+  mix-blend-mode: screen;
+}
+.cursor-trail {
+  width: 40px; height: 40px;
+  border: 1px solid rgba(0,255,231,0.3);
+  border-radius: 50%;
+  position: fixed;
+  pointer-events: none;
+  z-index: 99998;
+  transform: translate(-50%, -50%);
+  transition: left 0.12s, top 0.12s;
+}
 
-  body {
-    background: var(--darker);
-    color: var(--text);
-    font-family: 'Exo 2', sans-serif;
-    overflow-x: hidden;
-    cursor: default;
-  }
+/* ── NOISE + BG ── */
+body::after {
+  content: '';
+  position: fixed; inset: 0; z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
 
-  /* ─── NOISE OVERLAY ─── */
-  body::before {
-    content: '';
-    position: fixed; inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none; z-index: 9999; opacity: 0.3;
-  }
+.bg-wrap {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.bg-orb {
+  position: absolute; border-radius: 50%; filter: blur(100px);
+}
+.bg-orb-1 {
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(0,255,231,0.07) 0%, transparent 70%);
+  top: -200px; left: -200px;
+  animation: orbFloat1 18s ease-in-out infinite alternate;
+}
+.bg-orb-2 {
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(0,85,255,0.07) 0%, transparent 70%);
+  bottom: -150px; right: -100px;
+  animation: orbFloat2 22s ease-in-out infinite alternate;
+}
+.bg-orb-3 {
+  width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(123,47,255,0.05) 0%, transparent 70%);
+  top: 45%; left: 55%;
+  animation: orbFloat1 16s ease-in-out infinite alternate-reverse;
+}
+@keyframes orbFloat1 { from { transform: translate(0,0) scale(1); } to { transform: translate(60px, 40px) scale(1.1); } }
+@keyframes orbFloat2 { from { transform: translate(0,0) scale(1); } to { transform: translate(-40px, -60px) scale(1.15); } }
 
-  /* ─── BACKGROUND AURORA ─── */
-  .aurora {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    overflow: hidden;
-  }
-  .aurora-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    animation: drift 12s ease-in-out infinite alternate;
-  }
-  .aurora-orb:nth-child(1) {
-    width: 500px; height: 500px;
-    background: radial-gradient(circle, rgba(0,229,255,0.12) 0%, transparent 70%);
-    top: -100px; left: -100px;
-    animation-delay: 0s;
-  }
-  .aurora-orb:nth-child(2) {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(21,101,255,0.10) 0%, transparent 70%);
-    bottom: -150px; right: -100px;
-    animation-delay: -4s;
-  }
-  .aurora-orb:nth-child(3) {
-    width: 350px; height: 350px;
-    background: radial-gradient(circle, rgba(0,188,212,0.08) 0%, transparent 70%);
-    top: 40%; left: 50%;
-    animation-delay: -8s;
-  }
-  @keyframes drift {
-    from { transform: translate(0,0) scale(1); }
-    to   { transform: translate(40px, 30px) scale(1.1); }
-  }
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,255,231,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,231,0.025) 1px, transparent 1px);
+  background-size: 70px 70px;
+}
 
-  /* ─── GRID LINES ─── */
-  .grid-bg {
-    position: fixed; inset: 0; pointer-events: none; z-index: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-  }
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 0 60px;
+  height: 72px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(4,5,10,0.8);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid var(--border);
+  animation: navIn 0.6s ease both;
+}
+@keyframes navIn { from { opacity: 0; transform: translateY(-100%); } to { opacity: 1; transform: translateY(0); } }
 
-  /* ─── NAV ─── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 20px 60px;
-    background: linear-gradient(180deg, rgba(4,6,8,0.95) 0%, transparent 100%);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid var(--border);
-    animation: fadeDown 0.8s ease forwards;
-  }
-  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+.nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none; user-select: none;
+}
+.logo-hex {
+  width: 34px; height: 34px;
+  position: relative;
+}
+.logo-hex svg { width: 100%; height: 100%; }
+.nav-wordmark {
+  font-family: var(--font-display);
+  font-size: 1.3rem; font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fff;
+}
+.nav-wordmark em {
+  font-style: normal;
+  background: linear-gradient(90deg, var(--c), var(--c2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
-  .nav-logo {
-    display: flex; align-items: center; gap: 12px;
-    text-decoration: none;
-  }
-  .nav-logo-mark {
-    width: 36px; height: 36px;
-    position: relative;
-  }
-  .nav-logo-mark svg { width: 100%; height: 100%; }
-  .nav-brand {
-    font-family: 'Orbitron', monospace;
-    font-weight: 700; font-size: 1.4rem;
-    letter-spacing: 0.12em;
-    background: linear-gradient(135deg, #fff 0%, var(--cyan) 60%, var(--teal) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+.nav-links {
+  display: flex; align-items: center; gap: 4px; list-style: none;
+}
+.nav-links a {
+  padding: 6px 13px;
+  color: var(--muted); text-decoration: none;
+  font-size: 0.78rem; font-weight: 400;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  font-family: var(--font-mono);
+  transition: color 0.2s, background 0.2s;
+  border-radius: 3px;
+}
+.nav-links a:hover { color: var(--c); background: rgba(0,255,231,0.06); }
+.nav-pill {
+  padding: 8px 20px !important;
+  background: rgba(0,255,231,0.07) !important;
+  border: 1px solid var(--border2) !important;
+  color: var(--c) !important;
+  border-radius: 100px !important;
+  transition: background 0.2s, box-shadow 0.2s !important;
+}
+.nav-pill:hover {
+  background: rgba(0,255,231,0.14) !important;
+  box-shadow: 0 0 16px rgba(0,255,231,0.2) !important;
+}
 
-  .nav-links { display: flex; gap: 36px; list-style: none; }
-  .nav-links a {
-    color: var(--muted); text-decoration: none;
-    font-size: 0.82rem; font-weight: 500;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    transition: color 0.3s;
-    position: relative;
-  }
-  .nav-links a::after {
-    content: ''; position: absolute; bottom: -4px; left: 0; right: 0; height: 1px;
-    background: var(--cyan); transform: scaleX(0); transform-origin: left;
-    transition: transform 0.3s;
-  }
-  .nav-links a:hover { color: var(--cyan); }
-  .nav-links a:hover::after { transform: scaleX(1); }
+/* ── HERO ── */
+.hero {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: grid; grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 100px 60px 60px;
+  gap: 60px;
+  overflow: hidden;
+}
 
-  .nav-cta {
-    padding: 10px 24px;
-    background: transparent;
-    border: 1px solid var(--cyan);
-    color: var(--cyan) !important;
-    border-radius: 2px;
-    font-family: 'Orbitron', monospace;
-    font-size: 0.72rem !important;
-    letter-spacing: 0.15em;
-    cursor: pointer;
-    transition: background 0.3s, box-shadow 0.3s !important;
-  }
-  .nav-cta:hover {
-    background: rgba(0,229,255,0.08) !important;
-    box-shadow: 0 0 20px var(--glow-cyan), inset 0 0 10px rgba(0,229,255,0.05);
-    color: #fff !important;
-  }
+.hero-left { animation: slideLeft 0.9s 0.2s cubic-bezier(0.16,1,0.3,1) both; }
+@keyframes slideLeft { from { opacity: 0; transform: translateX(-60px); } to { opacity: 1; transform: translateX(0); } }
 
-  /* ─── HERO ─── */
-  .hero {
-    position: relative; z-index: 1;
-    min-height: 100vh;
-    display: flex; align-items: center;
-    padding: 120px 60px 80px;
-    overflow: hidden;
-  }
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 5px 14px;
+  border: 1px solid rgba(0,255,231,0.2);
+  border-radius: 100px;
+  background: rgba(0,255,231,0.04);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--c);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+.hero-tag::before {
+  content: '';
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+  animation: blink 2s ease-in-out infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-  .hero-content {
-    max-width: 680px;
-    animation: heroIn 1s 0.3s ease both;
-  }
-  @keyframes heroIn { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
+.hero-h1 {
+  font-family: var(--font-display);
+  font-size: clamp(3.2rem, 6vw, 6rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+  margin-bottom: 28px;
+}
+.hero-h1 .w1 { display: block; color: #fff; }
+.hero-h1 .w2 {
+  display: block;
+  background: linear-gradient(120deg, var(--c) 0%, var(--c2) 60%, var(--c3) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(0,255,231,0.35));
+}
+.hero-h1 .w3 { display: block; color: rgba(255,255,255,0.25); font-weight: 400; font-style: italic; font-size: 0.6em; letter-spacing: 0.05em; }
 
-  .hero-eyebrow {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.72rem; font-weight: 400;
-    letter-spacing: 0.3em; text-transform: uppercase;
-    color: var(--cyan);
-    margin-bottom: 20px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .hero-eyebrow::before {
-    content: ''; display: inline-block;
-    width: 40px; height: 1px; background: var(--cyan);
-    box-shadow: 0 0 6px var(--cyan);
-  }
+.hero-desc {
+  font-size: 1.05rem; font-weight: 300; line-height: 1.85;
+  color: rgba(220,232,236,0.65); max-width: 480px;
+  margin-bottom: 44px;
+}
 
-  .hero-title {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(3rem, 6vw, 5.5rem);
-    font-weight: 900;
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    margin-bottom: 8px;
-  }
-  .hero-title .line1 {
-    background: linear-gradient(135deg, #ffffff 0%, #d0eef5 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-  }
-  .hero-title .line2 {
-    background: linear-gradient(135deg, var(--cyan) 0%, var(--teal) 50%, var(--blue) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    display: block;
-    filter: drop-shadow(0 0 20px rgba(0,229,255,0.4));
-  }
+.hero-btns { display: flex; gap: 14px; flex-wrap: wrap; }
 
-  .hero-sub {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.85rem; font-weight: 400;
-    letter-spacing: 0.25em; text-transform: uppercase;
-    color: var(--muted);
-    margin: 16px 0 32px;
-  }
+.btn-primary {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, var(--c2), var(--c));
+  border: none; border-radius: 4px;
+  color: #04050a; font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.05em;
+  text-decoration: none; cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 4px 32px rgba(0,255,231,0.25);
+  position: relative; overflow: hidden;
+}
+.btn-primary::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+  opacity: 0; transition: opacity 0.25s;
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 48px rgba(0,255,231,0.4); }
+.btn-primary:hover::after { opacity: 1; }
 
-  .hero-desc {
-    font-size: 1.05rem; font-weight: 300; line-height: 1.8;
-    color: rgba(232,244,248,0.7);
-    max-width: 520px;
-    margin-bottom: 48px;
-  }
+.btn-outline {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 32px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 4px;
+  color: var(--muted); font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 600; letter-spacing: 0.05em;
+  text-decoration: none; cursor: pointer;
+  transition: border-color 0.25s, color 0.25s, background 0.25s;
+}
+.btn-outline:hover { border-color: var(--c); color: var(--c); background: rgba(0,255,231,0.04); }
 
-  .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
+/* Hero visual */
+.hero-right {
+  display: flex; align-items: center; justify-content: center;
+  animation: slideRight 0.9s 0.35s cubic-bezier(0.16,1,0.3,1) both;
+  position: relative;
+}
+@keyframes slideRight { from { opacity: 0; transform: translateX(60px); } to { opacity: 1; transform: translateX(0); } }
 
-  .btn-primary {
-    padding: 16px 40px;
-    background: linear-gradient(135deg, var(--blue) 0%, var(--cyan) 100%);
-    border: none; border-radius: 2px;
-    color: #fff; font-family: 'Orbitron', monospace;
-    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
-    cursor: pointer; text-decoration: none; display: inline-block;
-    transition: transform 0.3s, box-shadow 0.3s;
-    box-shadow: 0 4px 30px rgba(0,229,255,0.3);
-    position: relative; overflow: hidden;
-  }
-  .btn-primary::before {
-    content: ''; position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
-    opacity: 0; transition: opacity 0.3s;
-  }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(0,229,255,0.5); }
-  .btn-primary:hover::before { opacity: 1; }
+.hero-viz {
+  position: relative;
+  width: 500px; height: 500px;
+}
+.viz-ring {
+  position: absolute; border-radius: 50%;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border: 1px solid;
+  animation: spin linear infinite;
+}
+.viz-ring::before {
+  content: ''; position: absolute;
+  width: 8px; height: 8px; border-radius: 50%;
+  top: 50%; left: -4px; transform: translateY(-50%);
+}
+.viz-ring:nth-child(1) { width: 460px; height: 460px; border-color: rgba(0,255,231,0.08); animation-duration: 40s; }
+.viz-ring:nth-child(1)::before { background: var(--c); box-shadow: 0 0 12px var(--c), 0 0 24px var(--c); }
+.viz-ring:nth-child(2) { width: 360px; height: 360px; border-color: rgba(0,85,255,0.12); animation-duration: 28s; animation-direction: reverse; }
+.viz-ring:nth-child(2)::before { background: var(--c2); box-shadow: 0 0 12px var(--c2); }
+.viz-ring:nth-child(3) { width: 260px; height: 260px; border-color: rgba(123,47,255,0.18); animation-duration: 18s; }
+.viz-ring:nth-child(3)::before { background: var(--c3); box-shadow: 0 0 12px var(--c3); }
+.viz-ring:nth-child(4) { width: 160px; height: 160px; border-color: rgba(0,255,231,0.3); animation-duration: 10s; animation-direction: reverse; }
+.viz-ring:nth-child(4)::before { background: var(--c); box-shadow: 0 0 16px var(--c); }
+@keyframes spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
 
-  .btn-ghost {
-    padding: 16px 40px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    color: var(--muted); font-family: 'Orbitron', monospace;
-    font-size: 0.78rem; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase;
-    cursor: pointer; text-decoration: none; display: inline-block;
-    transition: border-color 0.3s, color 0.3s, box-shadow 0.3s;
-  }
-  .btn-ghost:hover {
-    border-color: var(--cyan); color: var(--cyan);
-    box-shadow: 0 0 20px rgba(0,229,255,0.1);
-  }
+.viz-core {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px; height: 80px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,255,231,0.95) 0%, rgba(0,85,255,0.6) 50%, transparent 80%);
+  box-shadow: 0 0 50px var(--c), 0 0 100px rgba(0,255,231,0.3), 0 0 160px rgba(0,255,231,0.15);
+  animation: corePulse 4s ease-in-out infinite;
+}
+@keyframes corePulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1); box-shadow: 0 0 50px var(--c), 0 0 100px rgba(0,255,231,0.3); }
+  50% { transform: translate(-50%,-50%) scale(1.15); box-shadow: 0 0 70px var(--c), 0 0 140px rgba(0,255,231,0.4); }
+}
+.viz-nodes {
+  position: absolute; inset: 0;
+}
+.viz-node {
+  position: absolute;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 10px var(--c);
+  animation: nodeFloat 3s ease-in-out infinite;
+}
+.viz-node:nth-child(1) { top: 15%; left: 50%; animation-delay: 0s; }
+.viz-node:nth-child(2) { top: 50%; right: 12%; animation-delay: 0.5s; }
+.viz-node:nth-child(3) { bottom: 18%; left: 30%; animation-delay: 1s; }
+.viz-node:nth-child(4) { top: 30%; left: 15%; animation-delay: 1.5s; background: var(--c2); box-shadow: 0 0 10px var(--c2); }
+.viz-node:nth-child(5) { bottom: 28%; right: 20%; animation-delay: 0.7s; background: var(--c3); box-shadow: 0 0 10px var(--c3); }
+@keyframes nodeFloat { 0%,100%{transform:translateY(0) scale(1);opacity:1} 50%{transform:translateY(-8px) scale(1.3);opacity:0.7} }
 
-  /* Hero visual */
-  .hero-visual {
-    position: absolute; right: -80px; top: 50%; transform: translateY(-50%);
-    width: 600px; height: 600px;
-    animation: heroVisualIn 1s 0.6s ease both;
-  }
-  @keyframes heroVisualIn { from { opacity: 0; transform: translateY(-50%) scale(0.8); } to { opacity: 1; transform: translateY(-50%) scale(1); } }
+/* ── TICKER ── */
+.ticker {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,255,231,0.015);
+  overflow: hidden; padding: 14px 0;
+}
+.ticker-track {
+  display: flex; width: max-content;
+  animation: ticker 30s linear infinite;
+}
+.ticker-item {
+  display: flex; align-items: center; gap: 14px;
+  padding: 0 40px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--muted);
+  white-space: nowrap;
+}
+.ticker-sep { color: var(--c); opacity: 0.4; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 
-  .hero-visual-inner {
-    width: 100%; height: 100%; position: relative;
-  }
-  .ring {
-    position: absolute; border-radius: 50%;
-    border: 1px solid;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    animation: spin linear infinite;
-  }
-  .ring-1 { width: 420px; height: 420px; border-color: rgba(0,229,255,0.12); animation-duration: 30s; }
-  .ring-2 { width: 320px; height: 320px; border-color: rgba(0,229,255,0.18); animation-duration: 22s; animation-direction: reverse; }
-  .ring-3 { width: 220px; height: 220px; border-color: rgba(21,101,255,0.25); animation-duration: 15s; }
-  .ring-4 { width: 120px; height: 120px; border-color: rgba(0,229,255,0.4); animation-duration: 8s; animation-direction: reverse; }
+/* ── STATS ── */
+.stats {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.stat-cell {
+  padding: 48px 52px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+  transition: background 0.3s;
+}
+.stat-cell:last-child { border-right: none; }
+.stat-cell::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--c), transparent);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.4s;
+}
+.stat-cell:hover { background: rgba(0,255,231,0.025); }
+.stat-cell:hover::before { transform: scaleX(1); }
 
-  .ring::before {
-    content: ''; position: absolute;
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--cyan);
-    box-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
-    top: 50%; left: 0; transform: translateY(-50%);
-  }
+.stat-num {
+  font-family: var(--font-display);
+  font-size: 3.2rem; font-weight: 800;
+  line-height: 1; margin-bottom: 8px;
+  background: linear-gradient(135deg, #fff 0%, var(--c) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-lbl {
+  font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); font-family: var(--font-mono);
+}
 
-  @keyframes spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+/* ── SECTIONS ── */
+section { position: relative; z-index: 1; padding: 110px 60px; }
 
-  .core {
-    position: absolute; top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 60px; height: 60px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(0,229,255,0.9) 0%, rgba(21,101,255,0.6) 50%, transparent 80%);
-    box-shadow: 0 0 40px var(--cyan), 0 0 80px rgba(0,229,255,0.4), 0 0 120px rgba(0,229,255,0.2);
-    animation: pulse 3s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 40px var(--cyan), 0 0 80px rgba(0,229,255,0.4); }
-    50% { transform: translate(-50%, -50%) scale(1.2); box-shadow: 0 0 60px var(--cyan), 0 0 120px rgba(0,229,255,0.5); }
-  }
+.section-eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--font-mono); font-size: 0.68rem;
+  letter-spacing: 0.3em; text-transform: uppercase;
+  color: var(--c); margin-bottom: 18px;
+}
+.section-eyebrow::before {
+  content: ''; width: 28px; height: 1px;
+  background: linear-gradient(90deg, var(--c), transparent);
+  box-shadow: 0 0 6px var(--c);
+}
 
-  /* ─── STATS ─── */
-  .stats-bar {
-    position: relative; z-index: 1;
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    background: rgba(0,229,255,0.02);
-    animation: fadeUp 0.8s 0.8s ease both;
-  }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.section-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3.5vw, 3.2rem);
+  font-weight: 800; line-height: 1.1;
+  letter-spacing: -0.02em; color: #fff;
+  margin-bottom: 20px;
+}
+.section-title .hl {
+  background: linear-gradient(120deg, var(--c), var(--c2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.section-body {
+  font-size: 1rem; font-weight: 300; line-height: 1.85;
+  color: rgba(220,232,236,0.6); max-width: 560px;
+}
 
-  .stat {
-    padding: 40px 60px;
-    border-right: 1px solid var(--border);
-  }
-  .stat:last-child { border-right: none; }
-  .stat-number {
-    font-family: 'Orbitron', monospace;
-    font-size: 2.8rem; font-weight: 900;
-    background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1; margin-bottom: 8px;
-  }
-  .stat-label {
-    font-size: 0.78rem; font-weight: 400;
-    letter-spacing: 0.12em; text-transform: uppercase;
-    color: var(--muted);
-  }
+/* ── SERVICES ── */
+.services-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  margin-top: 64px;
+}
+.service-card {
+  background: var(--bg);
+  padding: 48px 40px;
+  position: relative; overflow: hidden;
+  transition: background 0.35s;
+  cursor: default;
+}
+.service-card::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--c2), var(--c));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+}
+.service-card:hover { background: rgba(0,255,231,0.025); }
+.service-card:hover::after { transform: scaleX(1); }
 
-  /* ─── SECTION ─── */
-  section { position: relative; z-index: 1; padding: 100px 60px; }
+.s-num {
+  font-family: var(--font-mono); font-size: 0.62rem;
+  letter-spacing: 0.2em; color: rgba(0,255,231,0.25);
+  margin-bottom: 16px;
+}
+.s-icon {
+  width: 50px; height: 50px;
+  background: rgba(0,255,231,0.05);
+  border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 22px;
+  transition: background 0.3s, border-color 0.3s;
+}
+.service-card:hover .s-icon { background: rgba(0,255,231,0.1); border-color: rgba(0,255,231,0.3); }
+.s-icon svg { width: 22px; height: 22px; stroke: var(--c); fill: none; stroke-width: 1.5; }
+.s-title {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  color: #fff; margin-bottom: 12px;
+}
+.s-desc {
+  font-size: 0.875rem; font-weight: 300; line-height: 1.75;
+  color: var(--muted);
+}
 
-  .section-label {
-    font-family: 'Orbitron', monospace;
-    font-size: 0.68rem; font-weight: 400; letter-spacing: 0.35em;
-    text-transform: uppercase; color: var(--cyan);
-    margin-bottom: 16px;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .section-label::before {
-    content: ''; width: 24px; height: 1px;
-    background: var(--cyan); box-shadow: 0 0 6px var(--cyan);
-  }
+/* ── ABOUT ── */
+.about-wrap {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+  align-items: center;
+}
+.about-cards {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.acard {
+  background: var(--bg2);
+  padding: 30px 32px;
+  display: flex; align-items: flex-start; gap: 20px;
+  transition: background 0.3s;
+}
+.acard:hover { background: rgba(0,255,231,0.03); }
+.acard-icon {
+  width: 44px; height: 44px; flex-shrink: 0;
+  background: rgba(0,255,231,0.06);
+  border: 1px solid rgba(0,255,231,0.15);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+}
+.acard-icon svg { width: 20px; height: 20px; stroke: var(--c); fill: none; stroke-width: 1.5; }
+.acard-lbl {
+  font-family: var(--font-mono); font-size: 0.65rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--c); margin-bottom: 6px;
+}
+.acard-val {
+  font-family: var(--font-display); font-size: 1.5rem;
+  font-weight: 700; color: #fff; margin-bottom: 4px;
+}
+.acard-sub { font-size: 0.82rem; color: var(--muted); }
 
-  .section-title {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(1.8rem, 3vw, 2.8rem); font-weight: 700;
-    line-height: 1.15; margin-bottom: 20px;
-    color: #fff;
-  }
-  .section-title span {
-    background: linear-gradient(135deg, var(--cyan), var(--blue));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
+/* ── PROCESS ── */
+.process-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 0; position: relative; margin-top: 64px;
+}
+.process-line {
+  position: absolute; top: 36px; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,255,231,0.2) 30%, rgba(0,255,231,0.2) 70%, transparent);
+}
+.pstep { padding: 0 24px; text-align: center; }
+.pstep-num {
+  width: 72px; height: 72px; border-radius: 50%;
+  border: 1px solid var(--border);
+  background: rgba(0,255,231,0.03);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
+  font-family: var(--font-mono); font-size: 1.1rem; font-weight: 700;
+  color: var(--c);
+  cursor: default;
+}
+.pstep-num:hover { border-color: var(--c); background: rgba(0,255,231,0.08); box-shadow: 0 0 24px rgba(0,255,231,0.2); }
+.pstep-title {
+  font-family: var(--font-display); font-size: 0.9rem; font-weight: 700;
+  color: #fff; margin-bottom: 10px;
+}
+.pstep-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
 
-  .section-desc {
-    font-size: 1rem; font-weight: 300; line-height: 1.8;
-    color: rgba(232,244,248,0.6); max-width: 540px;
-  }
+/* ── EVENTS ── */
+.events-wrap {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
+  align-items: start;
+}
+.event-feature {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+}
+.ef-block {
+  background: var(--bg2); padding: 32px;
+  position: relative; overflow: hidden;
+}
+.ef-block::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  background: linear-gradient(180deg, var(--c), var(--c2));
+}
+.ef-tag {
+  font-family: var(--font-mono); font-size: 0.64rem;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--c); margin-bottom: 10px;
+}
+.ef-title {
+  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
+  color: #fff; margin-bottom: 8px;
+}
+.ef-body { font-size: 0.875rem; color: var(--muted); line-height: 1.75; }
 
-  /* ─── SERVICES ─── */
-  .services-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr);
-    gap: 1px;
-    margin-top: 60px;
-    background: var(--border);
-    border: 1px solid var(--border);
-  }
+.event-sidebar {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+}
+.ev-row {
+  background: var(--bg2);
+  padding: 20px 28px;
+  display: flex; align-items: center; gap: 14px;
+  font-size: 0.875rem; color: var(--text);
+  transition: background 0.2s;
+}
+.ev-row:hover { background: rgba(0,255,231,0.04); }
+.ev-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--c); box-shadow: 0 0 8px var(--c);
+  flex-shrink: 0;
+}
+.ev-row-label { font-family: var(--font-mono); font-size: 0.65rem; color: var(--c); letter-spacing: 0.12em; text-transform: uppercase; }
+.ev-trust {
+  padding: 24px 28px;
+  background: rgba(0,255,231,0.03);
+  font-size: 0.82rem; color: var(--muted); line-height: 1.8;
+  border-top: 1px solid var(--border);
+}
 
-  .service-card {
-    background: var(--darker);
-    padding: 48px 40px;
-    transition: background 0.4s;
-    position: relative; overflow: hidden;
-  }
-  .service-card::before {
-    content: ''; position: absolute;
-    top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-    transform: scaleX(0); transform-origin: center;
-    transition: transform 0.4s;
-  }
-  .service-card:hover { background: rgba(0,229,255,0.03); }
-  .service-card:hover::before { transform: scaleX(1); }
+/* ── PROJECT UNIFIED ── */
+.unified-header { text-align: center; max-width: 700px; margin: 0 auto 64px; }
+.zambia-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr);
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  max-width: 960px; margin: 0 auto;
+}
 
-  .service-icon {
-    width: 52px; height: 52px; margin-bottom: 24px;
-    background: rgba(0,229,255,0.08);
-    border: 1px solid rgba(0,229,255,0.2);
-    border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .service-icon svg { width: 24px; height: 24px; stroke: var(--cyan); fill: none; stroke-width: 1.5; }
+/* ── PILLARS ── */
+.pillars-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+  max-width: 1200px; margin: 0 auto;
+}
 
-  .service-num {
-    font-family: 'Orbitron', monospace; font-size: 0.65rem;
-    letter-spacing: 0.2em; color: rgba(0,229,255,0.3);
-    margin-bottom: 12px;
-  }
-  .service-title {
-    font-family: 'Orbitron', monospace; font-size: 0.98rem; font-weight: 600;
-    letter-spacing: 0.05em; color: #fff;
-    margin-bottom: 14px;
-  }
-  .service-desc {
-    font-size: 0.88rem; font-weight: 300; line-height: 1.75;
-    color: var(--muted);
-  }
+/* ── ROADMAP ── */
+.roadmap-intro { text-align: center; max-width: 680px; margin: 0 auto 64px; }
+.roadmap-steps {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  position: relative; max-width: 960px; margin: 0 auto;
+}
+.roadmap-line {
+  position: absolute; top: 36px; left: 10%; right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,255,231,0.2) 30%, rgba(0,255,231,0.2) 70%, transparent);
+}
 
-  /* ─── ABOUT SPLIT ─── */
-  .about-split {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
-    align-items: center;
-  }
-  .about-visual {
-    position: relative; height: 480px;
-  }
-  .about-card {
-    position: absolute;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    padding: 28px;
-    border-radius: 2px;
-  }
-  .about-card:nth-child(1) { top: 0; left: 0; right: 80px; }
-  .about-card:nth-child(2) { top: 100px; right: 0; left: 80px; background: rgba(0,229,255,0.04); border-color: rgba(0,229,255,0.25); }
-  .about-card:nth-child(3) { bottom: 0; left: 0; right: 80px; }
+/* ── INVEST ── */
+.invest-wrap {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 80px;
+  max-width: 1100px; margin: 0 auto;
+  align-items: start;
+}
+.invest-points { display: flex; flex-direction: column; gap: 20px; }
+.invest-point {
+  display: flex; gap: 18px; align-items: flex-start;
+}
+.invest-bullet {
+  width: 28px; height: 28px; flex-shrink: 0;
+  border: 1px solid rgba(0,255,231,0.25);
+  border-radius: 4px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono); font-size: 0.7rem; color: var(--c);
+  margin-top: 2px;
+}
+.invest-point-title { font-weight: 600; font-size: 0.92rem; color: #fff; margin-bottom: 4px; }
+.invest-point-desc { font-size: 0.855rem; color: var(--muted); line-height: 1.7; }
 
-  .about-card-label {
-    font-family: 'Orbitron', monospace; font-size: 0.65rem;
-    letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--cyan); margin-bottom: 8px;
-  }
-  .about-card-value {
-    font-family: 'Orbitron', monospace; font-size: 1.6rem;
-    font-weight: 700; color: #fff;
-  }
-  .about-card-sub {
-    font-size: 0.82rem; color: var(--muted); margin-top: 4px;
-  }
+.invest-stats {
+  display: flex; flex-direction: column; gap: 1px;
+  background: var(--border); border: 1px solid var(--border);
+}
+.istat {
+  background: var(--bg2); padding: 28px 32px;
+  transition: background 0.3s;
+}
+.istat:hover { background: rgba(0,255,231,0.03); }
+.istat-lbl { font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--c); margin-bottom: 8px; }
+.istat-val {
+  font-family: var(--font-display); font-size: 1.8rem; font-weight: 700;
+  color: #fff; margin-bottom: 4px; line-height: 1;
+}
+.istat-val.sm { font-size: 1.1rem; line-height: 1.5; }
+.istat-sub { font-size: 0.8rem; color: var(--muted); }
 
-  /* ─── HOW IT WORKS ─── */
-  .process-steps {
-    display: grid; grid-template-columns: repeat(4, 1fr);
-    gap: 0; margin-top: 60px;
-    position: relative;
-  }
-  .process-steps::before {
-    content: ''; position: absolute;
-    top: 32px; left: 10%; right: 10%; height: 1px;
-    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-    opacity: 0.3;
-  }
+/* ── CTA ── */
+.cta-band {
+  position: relative; z-index: 1;
+  margin: 0 60px;
+  padding: 80px;
+  background: linear-gradient(135deg, rgba(0,85,255,0.06), rgba(0,255,231,0.06));
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  text-align: center;
+  overflow: hidden;
+}
+.cta-band::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(0,255,231,0.08) 0%, transparent 60%);
+}
+.cta-glow {
+  position: absolute; width: 300px; height: 300px;
+  border-radius: 50%; filter: blur(80px);
+  background: rgba(0,255,231,0.07);
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  animation: corePulse 5s ease-in-out infinite;
+}
+.cta-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.6rem); font-weight: 800;
+  color: #fff; margin-bottom: 16px; position: relative;
+}
+.cta-sub { font-size: 1rem; color: var(--muted); margin-bottom: 40px; position: relative; }
 
-  .process-step { padding: 0 24px; text-align: center; }
-  .step-circle {
-    width: 64px; height: 64px; border-radius: 50%;
-    border: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 24px;
-    position: relative;
-    background: rgba(0,229,255,0.04);
-    transition: border-color 0.3s, background 0.3s;
-  }
-  .step-circle:hover { border-color: var(--cyan); background: rgba(0,229,255,0.1); }
-  .step-num {
-    font-family: 'Orbitron', monospace; font-size: 1.1rem;
-    font-weight: 700; color: var(--cyan);
-  }
-  .step-title {
-    font-family: 'Orbitron', monospace; font-size: 0.82rem;
-    font-weight: 600; letter-spacing: 0.05em; color: #fff;
-    margin-bottom: 10px;
-  }
-  .step-desc {
-    font-size: 0.82rem; color: var(--muted); line-height: 1.7;
-  }
+/* ── FOOTER ── */
+footer {
+  position: relative; z-index: 1;
+  padding: 48px 60px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 24px;
+}
+.footer-brand {
+  font-family: var(--font-display); font-size: 1.1rem; font-weight: 800;
+  letter-spacing: 0.05em;
+  background: linear-gradient(90deg, #fff, var(--c));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.footer-links { display: flex; gap: 28px; }
+.footer-links a {
+  font-family: var(--font-mono); font-size: 0.72rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-links a:hover { color: var(--c); }
+.footer-copy { font-size: 0.72rem; color: rgba(220,232,236,0.25); font-family: var(--font-mono); }
 
-  /* ─── CTA BANNER ─── */
-  .cta-banner {
-    margin: 0 60px;
-    border: 1px solid var(--border);
-    background: linear-gradient(135deg, rgba(0,229,255,0.04) 0%, rgba(21,101,255,0.04) 100%);
-    padding: 80px;
-    text-align: center;
-    position: relative; overflow: hidden;
-  }
-  .cta-banner::before {
-    content: ''; position: absolute; inset: 0;
-    background: radial-gradient(ellipse at center, rgba(0,229,255,0.06) 0%, transparent 70%);
-  }
-  .cta-banner-title {
-    font-family: 'Orbitron', monospace;
-    font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 700;
-    color: #fff; margin-bottom: 16px; position: relative;
-  }
-  .cta-banner-sub {
-    font-size: 1rem; color: var(--muted);
-    margin-bottom: 40px; position: relative;
-  }
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0; transform: translateY(36px);
+  transition: opacity 0.75s ease, transform 0.75s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.vis { opacity: 1; transform: translateY(0); }
 
-  /* ─── FOOTER ─── */
-  footer {
-    position: relative; z-index: 1;
-    padding: 60px;
-    border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 24px;
-  }
-  .footer-brand {
-    font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700;
-    letter-spacing: 0.12em;
-    background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  .footer-links { display: flex; gap: 32px; }
-  .footer-links a {
-    font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--muted); text-decoration: none;
-    transition: color 0.3s;
-  }
-  .footer-links a:hover { color: var(--cyan); }
-  .footer-copy {
-    font-size: 0.75rem; color: rgba(232,244,248,0.3);
-    letter-spacing: 0.08em;
-  }
-
-  /* ─── SCROLL FADE-IN ─── */
-  .reveal {
-    opacity: 0; transform: translateY(30px);
-    transition: opacity 0.8s, transform 0.8s;
-  }
-  .reveal.visible {
-    opacity: 1; transform: translateY(0);
-  }
-
-  @media (max-width: 1024px) {
-    nav, section, footer { padding-left: 32px; padding-right: 32px; }
-    .hero { padding-left: 32px; }
-    .hero-visual { display: none; }
-    .services-grid { grid-template-columns: 1fr 1fr; }
-    .about-split { grid-template-columns: 1fr; }
-    .about-visual { display: none; }
-    .stats-bar { grid-template-columns: repeat(2, 1fr); }
-    .process-steps { grid-template-columns: repeat(2, 1fr); gap: 40px; }
-    .cta-banner { margin: 0 32px; padding: 48px 32px; }
-  }
-  @media (max-width: 600px) {
-    .services-grid { grid-template-columns: 1fr; }
-    .stats-bar { grid-template-columns: 1fr 1fr; }
-    .stat { padding: 28px 24px; }
-    .process-steps { grid-template-columns: 1fr; }
-    nav { padding: 16px 20px; }
-    .nav-links { display: none; }
-  }
+/* ── MOBILE ── */
+@media (max-width: 1024px) {
+  nav { padding: 0 28px; }
+  .nav-links { gap: 2px; }
+  .nav-links a { padding: 6px 10px; font-size: 0.72rem; }
+  .hero { grid-template-columns: 1fr; padding: 100px 28px 60px; }
+  .hero-right { display: none; }
+  section { padding: 80px 28px; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .services-grid { grid-template-columns: repeat(2, 1fr); }
+  .about-wrap { grid-template-columns: 1fr; gap: 40px; }
+  .process-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+  .process-line { display: none; }
+  .roadmap-steps { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+  .roadmap-line { display: none; }
+  .events-wrap { grid-template-columns: 1fr; }
+  .zambia-grid { grid-template-columns: 1fr; }
+  .pillars-grid { grid-template-columns: 1fr; }
+  .invest-wrap { grid-template-columns: 1fr; gap: 40px; }
+  .cta-band { margin: 0 28px; padding: 48px 28px; }
+  footer { padding: 40px 28px; }
+}
+@media (max-width: 600px) {
+  .nav-links { display: none; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .stat-cell { padding: 32px 24px; }
+  .services-grid { grid-template-columns: 1fr; }
+  .process-grid { grid-template-columns: 1fr; }
+  .roadmap-steps { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-<div class="aurora">
-  <div class="aurora-orb"></div>
-  <div class="aurora-orb"></div>
-  <div class="aurora-orb"></div>
+<!-- Custom cursor -->
+<div class="cursor" id="cur"></div>
+<div class="cursor-trail" id="curTrail"></div>
+
+<!-- Backgrounds -->
+<div class="bg-wrap">
+  <div class="bg-orb bg-orb-1"></div>
+  <div class="bg-orb bg-orb-2"></div>
+  <div class="bg-orb bg-orb-3"></div>
 </div>
 <div class="grid-bg"></div>
 
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">
-    <div class="nav-logo-mark">
-      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <div class="logo-hex">
+      <svg viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#00e5ff"/>
-            <stop offset="100%" stop-color="#1565ff"/>
+          <linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#00ffe7"/>
+            <stop offset="100%" stop-color="#0055ff"/>
           </linearGradient>
         </defs>
-        <path d="M18 4 C10 8, 6 16, 10 24 C14 30, 22 32, 26 26 C30 20, 28 12, 22 8 C20 6, 19 4, 18 4Z" fill="url(#lg)" opacity="0.8"/>
-        <circle cx="18" cy="18" r="3" fill="white" opacity="0.9"/>
-        <path d="M18 18 L28 10" stroke="url(#lg)" stroke-width="1.5" stroke-linecap="round"/>
+        <polygon points="17,2 31,10 31,24 17,32 3,24 3,10" fill="none" stroke="url(#lg1)" stroke-width="1.5" opacity="0.6"/>
+        <polygon points="17,7 26,12 26,22 17,27 8,22 8,12" fill="url(#lg1)" opacity="0.15"/>
+        <circle cx="17" cy="17" r="4" fill="url(#lg1)" opacity="0.9"/>
+        <line x1="17" y1="17" x2="26" y2="10" stroke="url(#lg1)" stroke-width="1" opacity="0.5"/>
+        <line x1="17" y1="17" x2="8" y2="22" stroke="url(#lg1)" stroke-width="1" opacity="0.5"/>
       </svg>
     </div>
-    <span class="nav-brand">ZAST</span>
+    <span class="nav-wordmark"><em>ZAST</em></span>
   </a>
   <ul class="nav-links">
     <li><a href="#services">Services</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#process">Process</a></li>
-    <li><a href="#autorelief">AutoRelief</a></li>
-    <li><a href="#jobconnect">Job Connect</a></li>
+    <li><a href="https://samuelmwaz.github.io/unififed/supply_chain_portal">AutoRelief</a></li>
+    <li><a href="https://samuelmwaz.github.io/Project-Unified/home">Job Connect</a></li>
     <li><a href="#events">Events</a></li>
     <li><a href="#project-unified">Ecosystem</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#invest">Invest</a></li>
-    <li><a href="#contact" class="nav-cta">Get Started</a></li>
+    <li><a href="#contact" class="nav-pill">Get Started</a></li>
   </ul>
 </nav>
 
 <!-- HERO -->
 <div class="hero">
-  <div class="hero-content">
-    <div class="hero-eyebrow">Zed Aura Stream Tech</div>
-    <h1 class="hero-title">
-      <span class="line1">NEXT-GEN</span>
-      <span class="line2">SOLUTIONS</span>
+  <div class="hero-left">
+    <div class="hero-tag">Zed Aura Stream Tech — Lusaka, Zambia</div>
+    <h1 class="hero-h1">
+      <span class="w1">NEXT-GEN</span>
+      <span class="w2">SOLUTIONS</span>
+      <span class="w3">Stream · Innovate · Transcend</span>
     </h1>
-    <p class="hero-sub">Stream · Innovate · Transcend</p>
     <p class="hero-desc">
       ZAST delivers cutting-edge technology solutions that power businesses forward. From intelligent systems to seamless digital infrastructure — we build what tomorrow demands.
     </p>
-    <div class="hero-actions">
-      <a href="#services" class="btn-primary">Explore Services</a>
-      <a href="#contact" class="btn-ghost">Get In Touch</a>
+    <div class="hero-btns">
+      <a href="#services" class="btn-primary">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        Explore Services
+      </a>
+      <a href="#contact" class="btn-outline">Get In Touch</a>
     </div>
   </div>
 
-  <div class="hero-visual">
-    <div class="hero-visual-inner">
-      <div class="ring ring-1"></div>
-      <div class="ring ring-2"></div>
-      <div class="ring ring-3"></div>
-      <div class="ring ring-4"></div>
-      <div class="core"></div>
+  <div class="hero-right">
+    <div class="hero-viz">
+      <div class="viz-ring"></div>
+      <div class="viz-ring"></div>
+      <div class="viz-ring"></div>
+      <div class="viz-ring"></div>
+      <div class="viz-core"></div>
+      <div class="viz-nodes">
+        <div class="viz-node"></div>
+        <div class="viz-node"></div>
+        <div class="viz-node"></div>
+        <div class="viz-node"></div>
+        <div class="viz-node"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- STATS BAR -->
-<div class="stats-bar">
-  <div class="stat">
-    <div class="stat-number">3</div>
-    <div class="stat-label">Core Services</div>
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-track">
+    <span class="ticker-item">AutoRelief — Transport & Payments <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Job Connect — Employment Platform <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Reflecting Balance — Digital Wallet <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Industrial Logistics & Events <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Cloud Infrastructure · 98% Uptime <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Project Unified — One Ecosystem <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Piloting Lusaka 2026 <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">AutoRelief — Transport & Payments <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Job Connect — Employment Platform <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Reflecting Balance — Digital Wallet <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Industrial Logistics & Events <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Cloud Infrastructure · 98% Uptime <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Project Unified — One Ecosystem <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">Piloting Lusaka 2026 <span class="ticker-sep">✦</span></span>
   </div>
-  <div class="stat">
-    <div class="stat-number">98%</div>
-    <div class="stat-label">Client Satisfaction</div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-cell reveal">
+    <div class="stat-num">3+</div>
+    <div class="stat-lbl">Core Services</div>
   </div>
-  <div class="stat">
-    <div class="stat-number">3</div>
-    <div class="stat-label">Rollout Phases</div>
+  <div class="stat-cell reveal">
+    <div class="stat-num">98%</div>
+    <div class="stat-lbl">Uptime SLA</div>
   </div>
-  <div class="stat">
-    <div class="stat-number">24/7</div>
-    <div class="stat-label">Support & Uptime</div>
+  <div class="stat-cell reveal">
+    <div class="stat-num">3</div>
+    <div class="stat-lbl">Rollout Phases</div>
+  </div>
+  <div class="stat-cell reveal">
+    <div class="stat-num">24/7</div>
+    <div class="stat-lbl">Support & Monitoring</div>
   </div>
 </div>
 
 <!-- SERVICES -->
 <section id="services">
   <div class="reveal">
-    <div class="section-label">What We Do</div>
-    <h2 class="section-title">Technology That <span>Moves Fast</span></h2>
-    <p class="section-desc">End-to-end digital solutions designed for scale, speed, and precision. Built for the demands of tomorrow.</p>
+    <div class="section-eyebrow">What We Do</div>
+    <h2 class="section-title">Technology That <span class="hl">Moves Fast</span></h2>
+    <p class="section-body">End-to-end digital solutions designed for scale, speed, and precision. Built for the demands of tomorrow.</p>
   </div>
 
   <div class="services-grid reveal">
     <div class="service-card">
-      <div class="service-num">01</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      </div>
-      <div class="service-title">Digital Infrastructure</div>
-      <div class="service-desc">Scalable cloud architectures and streaming pipelines engineered for enterprise-grade performance and zero downtime.</div>
+      <div class="s-num">01</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+      <div class="s-title">Digital Infrastructure</div>
+      <div class="s-desc">Scalable cloud architectures and streaming pipelines engineered for enterprise-grade performance and zero downtime.</div>
     </div>
     <div class="service-card">
-      <div class="service-num">02</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg>
-      </div>
-      <div class="service-title">AI & Automation</div>
-      <div class="service-desc">Intelligent systems and machine learning solutions that automate complexity and unlock data-driven decision making.</div>
+      <div class="s-num">02</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/></svg></div>
+      <div class="s-title">AI & Automation</div>
+      <div class="s-desc">Intelligent systems and machine learning solutions that automate complexity and unlock data-driven decision making.</div>
     </div>
     <div class="service-card">
-      <div class="service-num">03</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      </div>
-      <div class="service-title">Real-Time Streaming</div>
-      <div class="service-desc">Ultra-low latency data streams and live event processing systems built for high-throughput environments.</div>
+      <div class="s-num">03</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="s-title">Real-Time Streaming</div>
+      <div class="s-desc">Ultra-low latency data streams and live event processing systems built for high-throughput environments.</div>
     </div>
     <div class="service-card">
-      <div class="service-num">04</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
-      </div>
-      <div class="service-title">Web & App Development</div>
-      <div class="service-desc">High-performance applications with exceptional user experiences — web, mobile, and beyond.</div>
+      <div class="s-num">04</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+      <div class="s-title">Web & App Development</div>
+      <div class="s-desc">High-performance applications with exceptional user experiences — web, mobile, and beyond.</div>
     </div>
     <div class="service-card">
-      <div class="service-num">05</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <div class="service-title">Cybersecurity</div>
-      <div class="service-desc">Comprehensive security audits, threat modeling, and zero-trust frameworks protecting your digital assets.</div>
+      <div class="s-num">05</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <div class="s-title">Cybersecurity</div>
+      <div class="s-desc">Comprehensive security audits, threat modeling, and zero-trust frameworks protecting your digital assets.</div>
     </div>
     <div class="service-card">
-      <div class="service-num">06</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      </div>
-      <div class="service-title">Tech Consulting</div>
-      <div class="service-desc">Strategic technology advisory to align your digital transformation with measurable business outcomes.</div>
+      <div class="s-num">06</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div>
+      <div class="s-title">Tech Consulting</div>
+      <div class="s-desc">Strategic technology advisory to align your digital transformation with measurable business outcomes.</div>
     </div>
   </div>
 </section>
 
 <!-- ABOUT -->
-<section id="about" style="background: rgba(0,229,255,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="about-split">
+<section id="about" style="background: rgba(0,255,231,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="about-wrap">
     <div class="reveal">
-      <div class="section-label">Who We Are</div>
-      <h2 class="section-title">Built on <span>Aura</span>, Powered by Stream</h2>
-      <p class="section-desc" style="margin-bottom: 32px;">
+      <div class="section-eyebrow">Who We Are</div>
+      <h2 class="section-title">Built on <span class="hl">Aura</span>,<br>Powered by Stream</h2>
+      <p class="section-body" style="margin-bottom:28px;">
         ZAST — Zed Aura Stream Tech — was born from a conviction that technology should flow seamlessly, intelligently, and powerfully. We are a team of engineers, strategists, and visionaries bridging the gap between bold ideas and production-ready systems.
       </p>
-      <p class="section-desc">
+      <p class="section-body">
         Operating from Zambia and reaching across Africa and beyond, we bring global-standard tech solutions to the markets that need them most.
       </p>
     </div>
-    <div class="about-visual reveal">
-      <div class="about-card">
-        <div class="about-card-label">Founded</div>
-        <div class="about-card-value">ZAST</div>
-        <div class="about-card-sub">Zed Aura Stream Tech — Zambia</div>
+    <div class="about-cards reveal">
+      <div class="acard">
+        <div class="acard-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <div>
+          <div class="acard-lbl">Mission</div>
+          <div class="acard-val">Formalize & Digitize</div>
+          <div class="acard-sub">Building Africa's digital backbone</div>
+        </div>
       </div>
-      <div class="about-card">
-        <div class="about-card-label">Mission</div>
-        <div class="about-card-value" style="font-size:1.1rem; line-height:1.4;">Stream Innovation. Build the Future.</div>
-        <div class="about-card-sub">Delivering tomorrow's technology today</div>
+      <div class="acard" style="background: rgba(0,255,231,0.03);">
+        <div class="acard-icon" style="background:rgba(0,255,231,0.1); border-color:rgba(0,255,231,0.3);"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>
+        <div>
+          <div class="acard-lbl">Infrastructure</div>
+          <div class="acard-val">98% Uptime</div>
+          <div class="acard-sub">Cloud-based, mobile-first, enterprise-grade</div>
+        </div>
       </div>
-      <div class="about-card">
-        <div class="about-card-label">Reach</div>
-        <div class="about-card-value">Africa+</div>
-        <div class="about-card-sub">Global reach, local expertise</div>
+      <div class="acard">
+        <div class="acard-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div>
+        <div>
+          <div class="acard-lbl">Revenue Live</div>
+          <div class="acard-val">From 2026</div>
+          <div class="acard-sub">Ticketing · Subscriptions · Wallet · Logistics</div>
+        </div>
       </div>
     </div>
   </div>
@@ -741,412 +956,260 @@
 
 <!-- PROCESS -->
 <section id="process">
-  <div class="reveal" style="text-align:center; max-width: 600px; margin: 0 auto 0;">
-    <div class="section-label" style="justify-content: center;">How We Work</div>
-    <h2 class="section-title">From Concept to <span>Launch</span></h2>
-    <p class="section-desc" style="margin: 0 auto;">A streamlined process that turns your vision into a high-performance reality — fast, transparent, and precise.</p>
+  <div class="reveal" style="text-align:center; max-width:640px; margin: 0 auto 0;">
+    <div class="section-eyebrow" style="justify-content:center;">How It Works</div>
+    <h2 class="section-title">From Concept to <span class="hl">Live System</span></h2>
+    <p class="section-body" style="margin:0 auto;">A repeatable delivery framework — transparent, efficient, and accountable at every step.</p>
   </div>
-  <div class="process-steps reveal">
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">01</span></div>
-      <div class="step-title">Discover</div>
-      <div class="step-desc">Deep-dive into your goals, constraints, and opportunities to define the right strategy.</div>
+  <div class="process-grid reveal">
+    <div class="process-line"></div>
+    <div class="pstep">
+      <div class="pstep-num">01</div>
+      <div class="pstep-title">Discovery</div>
+      <div class="pstep-desc">Deep-dive into your business goals, systems, and constraints to map the optimal solution path.</div>
     </div>
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">02</span></div>
-      <div class="step-title">Architect</div>
-      <div class="step-desc">Design scalable, future-proof technical blueprints aligned to your business objectives.</div>
+    <div class="pstep">
+      <div class="pstep-num">02</div>
+      <div class="pstep-title">Architecture</div>
+      <div class="pstep-desc">System design and technical specifications built for scalability from day one.</div>
     </div>
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">03</span></div>
-      <div class="step-title">Build</div>
-      <div class="step-desc">Agile development with continuous delivery, testing, and transparent progress tracking.</div>
+    <div class="pstep">
+      <div class="pstep-num">03</div>
+      <div class="pstep-title">Build & Test</div>
+      <div class="pstep-desc">Agile delivery with continuous testing, security reviews, and performance benchmarks throughout.</div>
     </div>
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">04</span></div>
-      <div class="step-title">Launch & Scale</div>
-      <div class="step-desc">Deploy with confidence, then grow — backed by monitoring, support, and optimization.</div>
-    </div>
-  </div>
-</section>
-
-
-
-<!-- AUTORELIEF USER SECTION -->
-<section id="autorelief" style="border-top: 1px solid var(--border);">
-  <div class="about-split reveal" style="max-width:1100px; margin:0 auto; align-items:flex-start;">
-    <div>
-      <div class="section-label">AutoRelief</div>
-      <h2 class="section-title">Your Daily Commute, <span>Reimagined</span></h2>
-      <p class="section-desc" style="margin-bottom:36px;">
-        No more fumbling for exact change. AutoRelief turns your phone into your transport wallet — tap, ride, and go. For bus owners, it means knowing exactly what's been collected, in real time, every trip.
-      </p>
-      <div style="display:flex; flex-direction:column; gap:20px;">
-        <div style="background:var(--surface); border:1px solid var(--border); padding:24px 28px; border-radius:2px; position:relative; overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div>
-          <div style="font-family:'Orbitron',monospace; font-size:0.78rem; color:var(--cyan); letter-spacing:0.15em; margin-bottom:8px;">FOR COMMUTERS</div>
-          <div style="color:#fff; font-size:0.95rem; font-weight:500; margin-bottom:6px;">Scan &amp; Ride</div>
-          <div style="color:var(--muted); font-size:0.88rem; line-height:1.75;">Scan a QR code at any AutoRelief-enabled bus stop or on board. Your Reflecting Balance wallet is charged instantly — no cash, no queues, no disputes.</div>
-        </div>
-        <div style="background:var(--surface); border:1px solid var(--border); padding:24px 28px; border-radius:2px; position:relative; overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div>
-          <div style="font-family:'Orbitron',monospace; font-size:0.78rem; color:var(--cyan); letter-spacing:0.15em; margin-bottom:8px;">FOR TRANSPORT STAFF</div>
-          <div style="color:#fff; font-size:0.95rem; font-weight:500; margin-bottom:6px;">Your Phone Is Your Till</div>
-          <div style="color:var(--muted); font-size:0.88rem; line-height:1.75;">ZAST provides smartphones for ticket validation. Every transaction is logged — meaning your work history builds automatically, opening doors to better employment opportunities within the platform.</div>
-        </div>
-        <div style="background:var(--surface); border:1px solid var(--border); padding:24px 28px; border-radius:2px; position:relative; overflow:hidden;">
-          <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--cyan));"></div>
-          <div style="font-family:'Orbitron',monospace; font-size:0.78rem; color:var(--cyan); letter-spacing:0.15em; margin-bottom:8px;">FOR BUS OWNERS</div>
-          <div style="color:#fff; font-size:0.95rem; font-weight:500; margin-bottom:6px;">Real-Time Revenue Accountability</div>
-          <div style="color:var(--muted); font-size:0.88rem; line-height:1.75;">See every fare collected on every route — live. Verified mechanics via the platform flag early faults before they become expensive repairs. Insurance and fuel delivery included in the ecosystem.</div>
-        </div>
-      </div>
-    </div>
-    <div style="display:flex; flex-direction:column; gap:20px; padding-top:80px;">
-      <div style="background:rgba(0,229,255,0.04); border:1px solid rgba(0,229,255,0.2); padding:32px; border-radius:2px; text-align:center;">
-        <div style="font-family:'Orbitron',monospace; font-size:2.4rem; font-weight:900; background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">QR</div>
-        <div style="color:#fff; font-size:0.9rem; margin:8px 0 4px;">Instant Ticket Validation</div>
-        <div style="color:var(--muted); font-size:0.8rem;">Works at hubs &amp; on board</div>
-      </div>
-      <div style="background:var(--surface); border:1px solid var(--border); padding:32px; border-radius:2px; text-align:center;">
-        <div style="font-family:'Orbitron',monospace; font-size:2.4rem; font-weight:900; background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">MTN</div>
-        <div style="color:#fff; font-size:0.9rem; margin:8px 0 4px;">+ Airtel + Zamtel</div>
-        <div style="color:var(--muted); font-size:0.8rem;">All major mobile money networks</div>
-      </div>
-      <div style="background:var(--surface); border:1px solid var(--border); padding:32px; border-radius:2px; text-align:center;">
-        <div style="font-family:'Orbitron',monospace; font-size:2.4rem; font-weight:900; background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">USSD</div>
-        <div style="color:#fff; font-size:0.9rem; margin:8px 0 4px;">No Smartphone? No Problem</div>
-        <div style="color:var(--muted); font-size:0.8rem;">USSD access for every user</div>
-      </div>
+    <div class="pstep">
+      <div class="pstep-num">04</div>
+      <div class="pstep-title">Deploy & Support</div>
+      <div class="pstep-desc">Live deployment with 24/7 monitoring, ongoing optimization, and dedicated support.</div>
     </div>
   </div>
 </section>
 
-<!-- JOB CONNECT USER SECTION -->
-<section id="jobconnect" style="background: rgba(0,229,255,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="reveal" style="text-align:center; max-width:680px; margin:0 auto 60px;">
-    <div class="section-label" style="justify-content:center;">The Job Connect</div>
-    <h2 class="section-title">Get Hired. <span>Get Verified. Get Paid.</span></h2>
-    <p class="section-desc" style="margin:0 auto;">
-      The Job Connect is where Zambia's workforce meets its employers — with zero guesswork, verified credentials, and a process that guarantees you're seen.
-    </p>
-  </div>
-  <div class="services-grid reveal" style="max-width:1100px; margin:0 auto; grid-template-columns:repeat(3,1fr);">
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-      </div>
-      <div class="service-num">WORKERS</div>
-      <div class="service-title">Guaranteed Interview</div>
-      <div class="service-desc">Apply and you will be seen. The Job Connect's documented testing and interview process means your application is never lost in a pile. Start free — build your profile, take skill assessments, and unlock paid premium access as you grow.</div>
-    </div>
-    <div class="service-card" style="background:rgba(0,229,255,0.03); border-color:rgba(0,229,255,0.2);">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.3C18 2.55 15.45 0 12.3 0 9.7 0 8 1.9 8 4.57V6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7.7 0H9.7V4.57C9.7 2.8 10.9 1.7 12.3 1.7c1.4 0 2.3 1.05 2.3 2.87V6h-2.3z"/></svg>
-      </div>
-      <div class="service-num">EMPLOYERS</div>
-      <div class="service-title">Hire Verified Talent</div>
-      <div class="service-desc">Access a pool of pre-screened, skill-tested candidates with documented work histories from within the ZAST ecosystem. Subscription packages give you recruitment tools, networking access, and direct placement — cutting hire time dramatically.</div>
-    </div>
-    <div class="service-card">
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-.23c0-.62.28-1.2.76-1.58C7.47 15.82 9.64 15 12 15s4.53.82 6.24 2.19c.48.38.76.97.76 1.58V19z"/></svg>
-      </div>
-      <div class="service-num">VENDORS</div>
-      <div class="service-title">Get Verified. Get Business.</div>
-      <div class="service-desc">Mechanics, service providers, and tradespeople can register on the platform for verification. A ZAST-verified badge signals trust to customers and employers — unlocking a steady pipeline of work from within the ecosystem.</div>
-    </div>
-  </div>
-
-  <!-- Tiered Packages Visual -->
-  <div class="reveal" style="max-width:780px; margin:48px auto 0; background:var(--surface); border:1px solid var(--border); padding:40px; border-radius:2px; position:relative; overflow:hidden;">
-    <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--cyan),transparent);"></div>
-    <div style="font-family:'Orbitron',monospace; font-size:0.72rem; letter-spacing:0.3em; color:var(--cyan); text-transform:uppercase; text-align:center; margin-bottom:32px;">Access Tiers</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--border);">
-      <div style="background:var(--darker); padding:24px; text-align:center;">
-        <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:700; color:#fff; margin-bottom:6px;">Free</div>
-        <div style="font-size:0.78rem; color:var(--cyan); margin-bottom:12px;">Workers — Trial</div>
-        <div style="font-size:0.82rem; color:var(--muted); line-height:1.7;">Profile creation<br>Skill assessments<br>Trial applications</div>
-      </div>
-      <div style="background:rgba(0,229,255,0.04); padding:24px; text-align:center; border-left:1px solid rgba(0,229,255,0.2); border-right:1px solid rgba(0,229,255,0.2);">
-        <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:700; background:linear-gradient(135deg,#fff,var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text; margin-bottom:6px;">Paid</div>
-        <div style="font-size:0.78rem; color:var(--cyan); margin-bottom:12px;">Workers — Full Access</div>
-        <div style="font-size:0.82rem; color:var(--muted); line-height:1.7;">Unlimited applications<br>Priority placement<br>Verified badge</div>
-      </div>
-      <div style="background:var(--darker); padding:24px; text-align:center;">
-        <div style="font-family:'Orbitron',monospace; font-size:1.4rem; font-weight:700; color:#fff; margin-bottom:6px;">Sub</div>
-        <div style="font-size:0.78rem; color:var(--cyan); margin-bottom:12px;">Employers</div>
-        <div style="font-size:0.82rem; color:var(--muted); line-height:1.7;">Recruitment tools<br>Networking packages<br>Direct placement</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- EVENTS & LOGISTICS USER SECTION -->
+<!-- EVENTS -->
 <section id="events" style="border-top: 1px solid var(--border);">
-  <div class="reveal" style="text-align:center; max-width:680px; margin:0 auto 60px;">
-    <div class="section-label" style="justify-content:center;">Events &amp; Logistics</div>
-    <h2 class="section-title">Run Events. <span>Move Goods. Pay Instantly.</span></h2>
-    <p class="section-desc" style="margin:0 auto;">
-      From concerts to corporate functions, deliveries to industrial supply chains — the ZAST ecosystem powers the people, payments, and logistics behind every operation.
-    </p>
+  <div class="reveal" style="max-width:700px; margin-bottom:60px;">
+    <div class="section-eyebrow">Industrial Logistics & Events</div>
+    <h2 class="section-title">Connecting Production <span class="hl">& Delivery</span></h2>
+    <p class="section-body">End-to-end infrastructure linking events, logistics, and verified staffing into one coordinated platform.</p>
   </div>
-  <div class="about-split reveal" style="max-width:1100px; margin:0 auto; gap:48px;">
-    <div style="display:flex; flex-direction:column; gap:20px;">
-      <div style="background:var(--surface); border:1px solid var(--border); padding:28px 32px; border-radius:2px; position:relative; overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));"></div>
-        <div style="font-family:'Orbitron',monospace; font-size:0.72rem; color:var(--cyan); letter-spacing:0.2em; margin-bottom:10px;">EVENT ORGANIZERS</div>
-        <div style="color:#fff; font-size:0.95rem; font-weight:500; margin-bottom:8px;">End-to-End Event Infrastructure</div>
-        <div style="color:var(--muted); font-size:0.88rem; line-height:1.75;">Sell tickets via QR codes, collect payments through the Reflecting Balance wallet, and deploy verified staff sourced directly from the Job Connect — all coordinated through a single dashboard. No cash, no unverified contractors, no gaps.</div>
+  <div class="events-wrap reveal">
+    <div class="event-feature">
+      <div class="ef-block">
+        <div class="ef-tag">Organisers</div>
+        <div class="ef-title">End-to-End Event Infrastructure</div>
+        <div class="ef-body">Sell tickets via QR codes, collect payments through the Reflecting Balance wallet, and deploy verified staff sourced directly from the Job Connect — all coordinated through a single dashboard.</div>
       </div>
-      <div style="background:var(--surface); border:1px solid var(--border); padding:28px 32px; border-radius:2px; position:relative; overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));"></div>
-        <div style="font-family:'Orbitron',monospace; font-size:0.72rem; color:var(--cyan); letter-spacing:0.2em; margin-bottom:10px;">ATTENDEES</div>
-        <div style="color:#fff; font-size:0.95rem; font-weight:500; margin-bottom:8px;">Scan In, Pay In, Done</div>
-        <div style="color:var(--muted); font-size:0.88rem; line-height:1.75;">Buy your ticket through the ZAST app, scan at the gate, and spend at vendors inside using your wallet — all from one place. No physical tickets to lose, no cash to carry.</div>
+      <div class="ef-block">
+        <div class="ef-tag">Attendees</div>
+        <div class="ef-title">Scan In, Pay In, Done</div>
+        <div class="ef-body">Buy your ticket through the ZAST app, scan at the gate, and spend at vendors inside using your wallet — all from one place. No physical tickets to lose, no cash to carry.</div>
       </div>
-      <div style="background:var(--surface); border:1px solid var(--border); padding:28px 32px; border-radius:2px; position:relative; overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;bottom:0;width:3px;background:linear-gradient(180deg,var(--cyan),var(--blue));"></div>
-        <div style="font-family:'Orbitron',monospace; font-size:0.72rem; color:var(--cyan); letter-spacing:0.2em; margin-bottom:10px;">BUSINESSES &amp; LOGISTICS</div>
-        <div style="color:#fff; font-size:0.95rem; font-weight:500; margin-bottom:8px;">Optimized Delivery &amp; Supply</div>
-        <div style="color:var(--muted); font-size:0.88rem; line-height:1.75;">Connect your production or distribution needs to verified drivers and logistics operators. Routes are optimised, deliveries are tracked, and workers are sourced from the verified Job Connect pool — so every link in the chain is accountable.</div>
+      <div class="ef-block">
+        <div class="ef-tag">Businesses & Logistics</div>
+        <div class="ef-title">Optimized Delivery & Supply</div>
+        <div class="ef-body">Connect production or distribution needs to verified drivers and logistics operators. Routes are optimised, deliveries are tracked, workers are sourced from the verified Job Connect pool.</div>
       </div>
     </div>
-    <div style="display:flex; flex-direction:column; gap:1px; background:var(--border); border:1px solid var(--border); align-self:flex-start;">
-      <div style="background:var(--darker); padding:32px 36px;">
-        <div style="font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:0.25em; color:var(--cyan); margin-bottom:10px;">WHAT YOU GET</div>
-        <div style="display:flex; flex-direction:column; gap:12px;">
-          <div style="display:flex; gap:12px; align-items:center;">
-            <span style="color:var(--cyan); font-size:0.9rem;">▸</span>
-            <span style="color:var(--text); font-size:0.88rem;">QR ticket sales &amp; gate scanning</span>
-          </div>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <span style="color:var(--cyan); font-size:0.9rem;">▸</span>
-            <span style="color:var(--text); font-size:0.88rem;">Wallet-based vendor payments on-site</span>
-          </div>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <span style="color:var(--cyan); font-size:0.9rem;">▸</span>
-            <span style="color:var(--text); font-size:0.88rem;">Verified staff sourced from Job Connect</span>
-          </div>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <span style="color:var(--cyan); font-size:0.9rem;">▸</span>
-            <span style="color:var(--text); font-size:0.88rem;">Real-time revenue &amp; attendance data</span>
-          </div>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <span style="color:var(--cyan); font-size:0.9rem;">▸</span>
-            <span style="color:var(--text); font-size:0.88rem;">Optimised logistics &amp; delivery routing</span>
-          </div>
-          <div style="display:flex; gap:12px; align-items:center;">
-            <span style="color:var(--cyan); font-size:0.9rem;">▸</span>
-            <span style="color:var(--text); font-size:0.88rem;">Full audit trail — every transaction</span>
-          </div>
-        </div>
-      </div>
-      <div style="background:rgba(0,229,255,0.03); padding:32px 36px; border-top:1px solid var(--border);">
-        <div style="font-family:'Orbitron',monospace; font-size:0.65rem; letter-spacing:0.25em; color:var(--cyan); margin-bottom:10px;">TRUST LAYER</div>
-        <div style="color:var(--muted); font-size:0.85rem; line-height:1.8;">
-          Every vendor, staff member, and driver on the platform is verified. Triple-copy documentation, encrypted transactions, and fraud monitoring mean your event or delivery runs without surprises.
+    <div>
+      <div class="event-sidebar">
+        <div style="padding: 20px 28px; border-bottom: 1px solid var(--border); font-family: var(--font-mono); font-size: 0.64rem; letter-spacing: 0.2em; text-transform:uppercase; color:var(--c);">What You Get</div>
+        <div class="ev-row"><div class="ev-dot"></div><div><div class="ev-row-label">Ticketing</div>QR ticket sales & gate scanning</div></div>
+        <div class="ev-row"><div class="ev-dot"></div><div><div class="ev-row-label">Payments</div>Wallet-based vendor payments on-site</div></div>
+        <div class="ev-row"><div class="ev-dot"></div><div><div class="ev-row-label">Staffing</div>Verified staff sourced from Job Connect</div></div>
+        <div class="ev-row"><div class="ev-dot"></div><div><div class="ev-row-label">Analytics</div>Real-time revenue & attendance data</div></div>
+        <div class="ev-row"><div class="ev-dot"></div><div><div class="ev-row-label">Logistics</div>Optimised delivery routing</div></div>
+        <div class="ev-row"><div class="ev-dot"></div><div><div class="ev-row-label">Audit</div>Full audit trail — every transaction</div></div>
+        <div class="ev-trust">
+          Every vendor, staff member, and driver is verified. Triple-copy documentation, encrypted transactions, and fraud monitoring mean your event or delivery runs without surprises.
         </div>
       </div>
     </div>
   </div>
 </section>
 
-
-<!-- PROJECT UNIFIED / BUSINESS PROPOSAL -->
-<section id="project-unified" style="background: rgba(0,229,255,0.01); border-top: 1px solid var(--border);">
-  <div class="reveal" style="text-align:center; max-width: 700px; margin: 0 auto 60px;">
-    <div class="section-label" style="justify-content: center;">Project Unified</div>
-    <h2 class="section-title">One Ecosystem. <span>Every Layer.</span></h2>
-    <p class="section-desc" style="margin: 0 auto;">
-      ZAST is building a unified digital ecosystem combining transport, employment, and financial systems into one scalable platform — purpose-built for Zambia and designed to scale across Africa.
-    </p>
+<!-- PROJECT UNIFIED -->
+<section id="project-unified" style="background: rgba(0,255,231,0.01); border-top: 1px solid var(--border);">
+  <div class="unified-header reveal">
+    <div class="section-eyebrow" style="justify-content:center;">Project Unified</div>
+    <h2 class="section-title">One Ecosystem. <span class="hl">Every Layer.</span></h2>
+    <p class="section-body" style="margin:0 auto;">A unified digital ecosystem combining transport, employment, and financial systems — purpose-built for Zambia and designed to scale across Africa.</p>
   </div>
 
-  <!-- Why Zambia -->
-  <div class="reveal" style="max-width: 960px; margin: 0 auto 60px;">
-    <div class="section-label">The Opportunity</div>
-    <h3 class="section-title" style="font-size:1.5rem;">Why We Must Do This <span>in Zambia</span></h3>
-    <div style="display:grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-top: 32px;">
+  <div class="reveal" style="max-width:960px; margin: 0 auto 60px;">
+    <div class="section-eyebrow">The Opportunity</div>
+    <h3 class="section-title" style="font-size:1.6rem;">Why We Must Do This <span class="hl">in Zambia</span></h3>
+    <div class="zambia-grid" style="margin-top:32px;">
       <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-        </div>
-        <div class="service-title">Informal Economy Dominance</div>
-        <div class="service-desc">Much of the economy relies on unverified vendors and informal trust networks that lack transparency — a gap ZAST directly addresses.</div>
+        <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg></div>
+        <div class="s-title">Informal Economy Dominance</div>
+        <div class="s-desc">Much of the economy relies on unverified vendors and informal trust networks that lack transparency — a gap ZAST directly addresses.</div>
       </div>
       <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
-        </div>
-        <div class="service-title">Cash Leakage in Transport</div>
-        <div class="service-desc">Public transport is heavily reliant on cash, leading to revenue loss and security risks for owners — solved with QR ticketing and real-time tracking.</div>
+        <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg></div>
+        <div class="s-title">Cash Leakage in Transport</div>
+        <div class="s-desc">Public transport relies heavily on cash, leading to revenue loss for owners — solved with QR ticketing and real-time tracking.</div>
       </div>
       <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        </div>
-        <div class="service-title">Employment Gap</div>
-        <div class="service-desc">High unemployment exists among skilled workers despite desperate need for verified labor. The Job Connect closes this gap with guaranteed interviews and tiered access.</div>
+        <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg></div>
+        <div class="s-title">Employment Gap</div>
+        <div class="s-desc">High unemployment among skilled workers despite demand for verified labor. The Job Connect closes this gap with guaranteed interviews and tiered access.</div>
       </div>
       <div class="service-card">
-        <div class="service-icon">
-          <svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg>
-        </div>
-        <div class="service-title">Mobile Money Growth</div>
-        <div class="service-desc">Rapid adoption of mobile money in Zambia provides the foundation for the Reflecting Balance digital wallet ecosystem, enabling financial inclusion at scale.</div>
+        <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div>
+        <div class="s-title">Mobile Money Growth</div>
+        <div class="s-desc">Rapid adoption of mobile money in Zambia provides the foundation for the Reflecting Balance digital wallet, enabling financial inclusion at scale.</div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- CORE PILLARS -->
+<!-- PILLARS -->
 <section id="pillars" style="border-top: 1px solid var(--border);">
-  <div class="reveal" style="text-align:center; max-width: 680px; margin: 0 auto 60px;">
-    <div class="section-label" style="justify-content: center;">Core Pillars</div>
-    <h2 class="section-title">Three Pillars. <span>One Platform.</span></h2>
-    <p class="section-desc" style="margin: 0 auto;">The integrated infrastructure that powers daily life — from the morning commute to verified employment and secure payments.</p>
+  <div class="reveal" style="text-align:center; max-width:680px; margin:0 auto 64px;">
+    <div class="section-eyebrow" style="justify-content:center;">Core Pillars</div>
+    <h2 class="section-title">Three Pillars. <span class="hl">One Platform.</span></h2>
+    <p class="section-body" style="margin:0 auto;">The integrated infrastructure that powers daily life — from the morning commute to verified employment and secure payments.</p>
   </div>
-  <div class="services-grid reveal" style="max-width: 1200px; margin: 0 auto; grid-template-columns: repeat(3,1fr);">
+  <div class="pillars-grid reveal">
     <div class="service-card">
-      <div class="service-num">A</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg>
-      </div>
-      <div class="service-title">AutoRelief — Mobility &amp; Payments</div>
-      <div class="service-desc" style="line-height:1.9;">
-        The high-frequency entry point of the ecosystem.<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> QR Ticketing — digital validation, zero cash leakage<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Vehicle Lifecycle — mechanics, fuel &amp; insurance<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Revenue Accountability — real-time financial tracking
+      <div class="s-num">A</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/></svg></div>
+      <div class="s-title">AutoRelief — Mobility & Payments</div>
+      <div class="s-desc" style="line-height:1.9;">The high-frequency entry point of the ecosystem.<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> QR Ticketing — digital validation, zero cash leakage<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Vehicle Lifecycle — mechanics, fuel & insurance<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Revenue Accountability — real-time financial tracking
       </div>
     </div>
-    <div class="service-card" style="background: rgba(0,229,255,0.03); border-color: rgba(0,229,255,0.2);">
-      <div class="service-num">B</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.3C18 2.55 15.45 0 12.3 0 9.7 0 8 1.9 8 4.57V6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg>
-      </div>
-      <div class="service-title">The Job Connect — Employment &amp; Vendors</div>
-      <div class="service-desc" style="line-height:1.9;">
-        A structured gateway to professionalize the workforce.<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Guaranteed Interviews — verified testing process<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Tiered Access — free for workers, subscription for employers<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Vendor Regulation — verified vendor system
+    <div class="service-card" style="background: rgba(0,255,231,0.03); border-color: rgba(0,255,231,0.2);">
+      <div class="s-num">B</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.3C18 2.55 15.45 0 12.3 0 9.7 0 8 1.9 8 4.57V6H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2z"/></svg></div>
+      <div class="s-title">Job Connect — Employment & Vendors</div>
+      <div class="s-desc" style="line-height:1.9;">A structured gateway to professionalize the workforce.<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Guaranteed Interviews — verified testing process<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Tiered Access — free for workers, subscription for employers<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Vendor Regulation — verified vendor system
       </div>
     </div>
     <div class="service-card">
-      <div class="service-num">C</div>
-      <div class="service-icon">
-        <svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm13.5-9l1.96 2.5H17V9.5h2.5zm-1.5 9c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
-      </div>
-      <div class="service-title">Industrial Logistics &amp; Events</div>
-      <div class="service-desc" style="line-height:1.9;">
-        Connecting production and service delivery.<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Logistics Routing — optimized delivery systems<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Event Integration — QR ticketing &amp; wallet payments<br>
-        <span style="color:var(--cyan); font-size:0.78rem;">▸</span> Staffing Synergy — verified staff for events
+      <div class="s-num">C</div>
+      <div class="s-icon"><svg viewBox="0 0 24 24"><path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4z"/></svg></div>
+      <div class="s-title">Industrial Logistics & Events</div>
+      <div class="s-desc" style="line-height:1.9;">Connecting production and service delivery.<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Logistics Routing — optimized delivery systems<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Event Integration — QR ticketing & wallet payments<br>
+        <span style="color:var(--c); font-size:0.78rem;">▸</span> Staffing Synergy — verified staff for events
       </div>
     </div>
   </div>
 </section>
 
 <!-- ROADMAP -->
-<section id="roadmap" style="background: rgba(0,229,255,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-  <div class="reveal" style="text-align:center; max-width: 680px; margin: 0 auto 60px;">
-    <div class="section-label" style="justify-content: center;">Strategic Roadmap</div>
-    <h2 class="section-title">From Lusaka to <span>the Nation</span></h2>
-    <p class="section-desc" style="margin: 0 auto;">A three-phase deployment strategy — piloting in the capital, expanding regionally, then scaling nationwide.</p>
+<section id="roadmap" style="background: rgba(0,255,231,0.01); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="roadmap-intro reveal">
+    <div class="section-eyebrow" style="justify-content:center;">Strategic Roadmap</div>
+    <h2 class="section-title">From Lusaka to <span class="hl">the Nation</span></h2>
+    <p class="section-body" style="margin:0 auto;">A three-phase deployment strategy — piloting in the capital, expanding regionally, then scaling nationwide.</p>
   </div>
-  <div class="process-steps reveal" style="max-width:960px; margin: 0 auto;">
-    <div class="process-step">
-      <div class="step-circle" style="border-color: var(--cyan); background: rgba(0,229,255,0.08);"><span class="step-num">01</span></div>
-      <div class="step-title">Phase 1 — Pilot</div>
-      <div class="step-desc">Launch in Lusaka. Onboard transport operators, employers, and vendors. Validate product-market fit with real users.</div>
+  <div class="roadmap-steps reveal">
+    <div class="roadmap-line"></div>
+    <div class="pstep">
+      <div class="pstep-num" style="border-color:var(--c); background:rgba(0,255,231,0.08); box-shadow:0 0 20px rgba(0,255,231,0.2);">01</div>
+      <div class="pstep-title">Phase 1 — Pilot</div>
+      <div class="pstep-desc">Launch in Lusaka. Onboard transport operators, employers, and vendors. Validate product-market fit with real users.</div>
     </div>
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">02</span></div>
-      <div class="step-title">Phase 2 — Expansion</div>
-      <div class="step-desc">Roll out to additional urban centres. Scale the Job Connect and Reflecting Balance wallet across growing user base.</div>
+    <div class="pstep">
+      <div class="pstep-num">02</div>
+      <div class="pstep-title">Phase 2 — Expansion</div>
+      <div class="pstep-desc">Roll out to additional urban centres. Scale the Job Connect and Reflecting Balance wallet across growing user base.</div>
     </div>
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">03</span></div>
-      <div class="step-title">Phase 3 — Nationwide</div>
-      <div class="step-desc">Full nationwide deployment. Industrial logistics active. Cloud infrastructure supporting enterprise-grade transaction volume.</div>
+    <div class="pstep">
+      <div class="pstep-num">03</div>
+      <div class="pstep-title">Phase 3 — Nationwide</div>
+      <div class="pstep-desc">Full nationwide deployment. Industrial logistics active. Cloud infrastructure supporting enterprise-grade transaction volume.</div>
     </div>
-    <div class="process-step">
-      <div class="step-circle"><span class="step-num">04</span></div>
-      <div class="step-title">Impact &amp; Beyond</div>
-      <div class="step-desc">Job creation, financial inclusion, and economic formalization — building the digital foundation for Zambia's future economy.</div>
+    <div class="pstep">
+      <div class="pstep-num">04</div>
+      <div class="pstep-title">Impact & Beyond</div>
+      <div class="pstep-desc">Job creation, financial inclusion, and economic formalization — building the digital foundation for Zambia's future economy.</div>
     </div>
   </div>
 </section>
 
-<!-- WHY INVEST -->
+<!-- INVEST -->
 <section id="invest" style="border-top: 1px solid var(--border);">
-  <div class="about-split reveal" style="max-width:1100px; margin:0 auto;">
-    <div>
-      <div class="section-label">Why Partner &amp; Invest</div>
-      <h2 class="section-title">Ground-Floor Opportunity in a <span>Digital Economy</span></h2>
-      <p class="section-desc" style="margin-bottom: 32px;">
-        Project Unified offers a rare chance to digitize an entire economic sector from the ground up — with proven daily-use mechanics, diversified revenue, and cloud-ready scalability.
-      </p>
-      <div style="display:flex; flex-direction:column; gap:16px; margin-top:8px;">
-        <div style="display:flex; gap:14px; align-items:flex-start;">
-          <span style="color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.8rem; min-width:24px; padding-top:2px;">▸</span>
-          <div><strong style="color:#fff; font-size:0.9rem;">Proven Market Entry</strong> — Transport ensures daily usage and immediate network effect from day one.</div>
+  <div class="invest-wrap">
+    <div class="reveal">
+      <div class="section-eyebrow">Why Partner & Invest</div>
+      <h2 class="section-title">Ground-Floor Opportunity in a <span class="hl">Digital Economy</span></h2>
+      <p class="section-body" style="margin-bottom:36px;">Project Unified offers a rare chance to digitize an entire economic sector from the ground up — with proven daily-use mechanics, diversified revenue, and cloud-ready scalability.</p>
+      <div class="invest-points">
+        <div class="invest-point">
+          <div class="invest-bullet">▸</div>
+          <div><div class="invest-point-title">Proven Market Entry</div><div class="invest-point-desc">Transport ensures daily usage and immediate network effect from day one.</div></div>
         </div>
-        <div style="display:flex; gap:14px; align-items:flex-start;">
-          <span style="color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.8rem; min-width:24px; padding-top:2px;">▸</span>
-          <div><strong style="color:#fff; font-size:0.9rem;">Diversified Revenue Streams</strong> — Ticketing, subscriptions, logistics fees, and wallet transactions across every pillar.</div>
+        <div class="invest-point">
+          <div class="invest-bullet">▸</div>
+          <div><div class="invest-point-title">Diversified Revenue Streams</div><div class="invest-point-desc">Ticketing, subscriptions, logistics fees, and wallet transactions across every pillar.</div></div>
         </div>
-        <div style="display:flex; gap:14px; align-items:flex-start;">
-          <span style="color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.8rem; min-width:24px; padding-top:2px;">▸</span>
-          <div><strong style="color:#fff; font-size:0.9rem;">Cloud Scalability</strong> — 98% uptime infrastructure, mobile-first super app, ready for rapid regional rollout.</div>
+        <div class="invest-point">
+          <div class="invest-bullet">▸</div>
+          <div><div class="invest-point-title">Cloud Scalability</div><div class="invest-point-desc">98% uptime infrastructure, mobile-first super app, ready for rapid regional rollout.</div></div>
         </div>
-        <div style="display:flex; gap:14px; align-items:flex-start;">
-          <span style="color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.8rem; min-width:24px; padding-top:2px;">▸</span>
-          <div><strong style="color:#fff; font-size:0.9rem;">Regulatory Alignment</strong> — Full compliance with national authorities and integration with existing mobile money frameworks.</div>
+        <div class="invest-point">
+          <div class="invest-bullet">▸</div>
+          <div><div class="invest-point-title">Regulatory Alignment</div><div class="invest-point-desc">Full compliance with national authorities and integration with existing mobile money frameworks.</div></div>
         </div>
-        <div style="display:flex; gap:14px; align-items:flex-start;">
-          <span style="color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.8rem; min-width:24px; padding-top:2px;">▸</span>
-          <div><strong style="color:#fff; font-size:0.9rem;">Human-Centric Onboarding</strong> — Yellow Vest Ambassadors bridge the digital divide, ensuring inclusive adoption across demographics.</div>
+        <div class="invest-point">
+          <div class="invest-bullet">▸</div>
+          <div><div class="invest-point-title">Human-Centric Onboarding</div><div class="invest-point-desc">Yellow Vest Ambassadors bridge the digital divide, ensuring inclusive adoption across demographics.</div></div>
         </div>
-        <div style="display:flex; gap:14px; align-items:flex-start;">
-          <span style="color:var(--cyan); font-family:'Orbitron',monospace; font-size:0.8rem; min-width:24px; padding-top:2px;">▸</span>
-          <div><strong style="color:#fff; font-size:0.9rem;">Trust Architecture</strong> — KYC systems, encrypted audit trails, and the Reflecting Balance wallet build reliability into informal markets.</div>
+        <div class="invest-point">
+          <div class="invest-bullet">▸</div>
+          <div><div class="invest-point-title">Trust Architecture</div><div class="invest-point-desc">KYC systems, encrypted audit trails, and the Reflecting Balance wallet build reliability into informal markets.</div></div>
         </div>
       </div>
     </div>
-    <div class="about-visual reveal">
-      <div class="about-card">
-        <div class="about-card-label">Revenue Model</div>
-        <div class="about-card-value" style="font-size:1rem; line-height:1.5;">Ticketing · Subscriptions · Logistics · Wallet</div>
-        <div class="about-card-sub">Diversified streams from 2026</div>
-      </div>
-      <div class="about-card">
-        <div class="about-card-label">Command Center</div>
-        <div class="about-card-value" style="font-size:1.1rem;">Real-Time Dashboard</div>
-        <div class="about-card-sub">Live monitoring of all ecosystem activity</div>
-      </div>
-      <div class="about-card">
-        <div class="about-card-label">Infrastructure</div>
-        <div class="about-card-value">98% Uptime</div>
-        <div class="about-card-sub">Cloud-based, mobile-first, enterprise-grade</div>
+    <div class="reveal">
+      <div class="invest-stats">
+        <div class="istat">
+          <div class="istat-lbl">Revenue Model</div>
+          <div class="istat-val sm">Ticketing · Subscriptions · Logistics · Wallet</div>
+          <div class="istat-sub">Diversified streams from 2026</div>
+        </div>
+        <div class="istat" style="background:rgba(0,255,231,0.03);">
+          <div class="istat-lbl">Command Center</div>
+          <div class="istat-val sm">Real-Time Dashboard</div>
+          <div class="istat-sub">Live monitoring of all ecosystem activity</div>
+        </div>
+        <div class="istat">
+          <div class="istat-lbl">Infrastructure</div>
+          <div class="istat-val">98%</div>
+          <div class="istat-sub">Cloud-based, mobile-first, enterprise-grade</div>
+        </div>
+        <div class="istat">
+          <div class="istat-lbl">Launch Window</div>
+          <div class="istat-val">2026</div>
+          <div class="istat-sub">Lusaka pilot — first movers advantage</div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<div id="contact">
-  <div class="cta-banner reveal">
-    <h2 class="cta-banner-title">Ready to Build the Future?</h2>
-    <p class="cta-banner-sub">Partner with ZAST and bring your most ambitious technology vision to life.</p>
-    <a href="/cdn-cgi/l/email-protection#5c34393030331c263d2f282f333029283533322f7228393f34" class="btn-primary">Start a Project</a>
+<div id="contact" style="position:relative;z-index:1; padding: 60px 0 0;">
+  <div class="cta-band reveal">
+    <div class="cta-glow"></div>
+    <h2 class="cta-title">Ready to Build the Future?</h2>
+    <p class="cta-sub">Partner with ZAST and bring your most ambitious technology vision to life.</p>
+    <a href="mailto:hello@zastsolutions.com" class="btn-primary" style="margin: 0 auto;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+      Start a Project
+    </a>
   </div>
 </div>
-
-<div style="padding: 60px 0 20px;"></div>
 
 <!-- FOOTER -->
 <footer>
@@ -1155,32 +1218,66 @@
     <a href="#services">Services</a>
     <a href="#about">About</a>
     <a href="#process">Process</a>
+    <a href="#project-unified">Ecosystem</a>
+    <a href="#roadmap">Roadmap</a>
     <a href="#contact">Contact</a>
   </div>
-  <div class="footer-copy">© 2025 Zed Aura Stream Tech. All rights reserved.</div>
+  <div class="footer-copy">© 2026 Zed Aura Stream Tech. All rights reserved.</div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('visible'), i * 100);
-      }
-    });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => observer.observe(el));
+<script>
+// ── Custom cursor
+const cur = document.getElementById('cur');
+const trail = document.getElementById('curTrail');
+let mx = 0, my = 0;
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top = my + 'px';
+  setTimeout(() => {
+    trail.style.left = mx + 'px';
+    trail.style.top = my + 'px';
+  }, 80);
+});
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => { cur.style.width = '20px'; cur.style.height = '20px'; });
+  el.addEventListener('mouseleave', () => { cur.style.width = '12px'; cur.style.height = '12px'; });
+});
 
-  // Smooth nav link scrolling
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const id = a.getAttribute('href');
-      if (id === '#') return;
-      const el = document.querySelector(id);
-      if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
-    });
+// ── Scroll reveal
+const observer = new IntersectionObserver(entries => {
+  entries.forEach((e, i) => {
+    if (e.isIntersecting) {
+      setTimeout(() => e.target.classList.add('vis'), i * 80);
+      observer.unobserve(e.target);
+    }
   });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if (id === '#') return;
+    const el = document.querySelector(id);
+    if (el) { e.preventDefault(); el.scrollIntoView({ behavior: 'smooth' }); }
+  });
+});
+
+// ── Nav active state
+const sections = document.querySelectorAll('section[id], div[id]');
+const navLinks = document.querySelectorAll('.nav-links a');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 120) current = s.getAttribute('id');
+  });
+  navLinks.forEach(a => {
+    a.style.color = '';
+    if (a.getAttribute('href') === '#' + current) a.style.color = 'var(--c)';
+  });
+});
 </script>
 </body>
 </html>
