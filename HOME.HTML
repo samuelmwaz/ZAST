@@ -705,14 +705,63 @@ footer {
 }
 .reveal.vis { opacity: 1; transform: translateY(0); }
 
-/* ── MOBILE ── */
+/* ── HAMBURGER ── */
+.nav-hamburger {
+  display: none;
+  flex-direction: column; justify-content: center; align-items: center;
+  width: 40px; height: 40px;
+  cursor: pointer; gap: 5px;
+  background: none; border: none; padding: 0;
+  z-index: 1100;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: var(--c); border-radius: 2px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+.nav-hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.nav-hamburger.open span:nth-child(2) { opacity: 0; }
+.nav-hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+.mobile-menu {
+  display: none;
+  position: fixed; inset: 0; z-index: 1050;
+  background: rgba(4,5,10,0.97);
+  backdrop-filter: blur(24px);
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 8px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+.mobile-menu.open { opacity: 1; pointer-events: all; }
+.mobile-menu a {
+  font-family: var(--font-display);
+  font-size: 1.4rem; font-weight: 700;
+  color: var(--muted); text-decoration: none;
+  letter-spacing: 0.04em;
+  padding: 12px 24px;
+  transition: color 0.2s;
+}
+.mobile-menu a:hover, .mobile-menu a:active { color: var(--c); }
+.mobile-menu .nav-pill-mobile {
+  margin-top: 16px;
+  padding: 14px 36px;
+  background: rgba(0,255,231,0.07);
+  border: 1px solid var(--border2);
+  color: var(--c) !important;
+  border-radius: 100px;
+  font-size: 1rem !important;
+}
+
+/* ── TABLET ── */
 @media (max-width: 1024px) {
-  nav { padding: 0 28px; }
+  nav { padding: 0 24px; }
   .nav-links { gap: 2px; }
   .nav-links a { padding: 6px 10px; font-size: 0.72rem; }
-  .hero { grid-template-columns: 1fr; padding: 100px 28px 60px; }
+  .hero { grid-template-columns: 1fr; padding: 100px 24px 60px; }
   .hero-right { display: none; }
-  section { padding: 80px 28px; }
+  section { padding: 80px 24px; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .services-grid { grid-template-columns: repeat(2, 1fr); }
   .about-wrap { grid-template-columns: 1fr; gap: 40px; }
@@ -724,16 +773,88 @@ footer {
   .zambia-grid { grid-template-columns: 1fr; }
   .pillars-grid { grid-template-columns: 1fr; }
   .invest-wrap { grid-template-columns: 1fr; gap: 40px; }
-  .cta-band { margin: 0 28px; padding: 48px 28px; }
-  footer { padding: 40px 28px; }
+  .cta-band { margin: 0 24px; padding: 48px 24px; }
+  footer { padding: 40px 24px; }
 }
+
+/* ── MOBILE ── */
 @media (max-width: 600px) {
+  /* Nav */
+  nav { padding: 0 18px; height: 60px; }
   .nav-links { display: none; }
+  .nav-hamburger { display: flex; }
+  .mobile-menu { display: flex; }
+
+  /* Hero */
+  .hero { padding: 80px 18px 48px; gap: 32px; }
+  .hero-h1 { font-size: clamp(2.4rem, 11vw, 3.6rem); }
+  .hero-desc { font-size: 0.95rem; margin-bottom: 32px; }
+  .hero-btns { flex-direction: column; gap: 10px; }
+  .hero-btns a { width: 100%; justify-content: center; }
+  .hero-right { display: none; }
+
+  /* Sections */
+  section { padding: 60px 18px; }
+
+  /* Stats */
   .stats { grid-template-columns: repeat(2, 1fr); }
-  .stat-cell { padding: 32px 24px; }
-  .services-grid { grid-template-columns: 1fr; }
-  .process-grid { grid-template-columns: 1fr; }
-  .roadmap-steps { grid-template-columns: 1fr; }
+  .stat-cell { padding: 28px 18px; }
+  .stat-num { font-size: 2.4rem; }
+
+  /* Services */
+  .services-grid { grid-template-columns: 1fr; margin-top: 40px; }
+  .service-card { padding: 36px 28px; }
+
+  /* About */
+  .about-wrap { gap: 32px; }
+  .acard { padding: 22px 20px; gap: 14px; }
+
+  /* Process */
+  .process-grid { grid-template-columns: 1fr; gap: 32px; margin-top: 40px; }
+  .pstep { padding: 0 8px; }
+
+  /* Events */
+  .events-wrap { gap: 24px; }
+  .ef-block { padding: 24px 20px; }
+  .ev-row { padding: 16px 20px; }
+
+  /* Project Unified / Zambia grid */
+  .zambia-grid { grid-template-columns: 1fr; }
+  .pillars-grid { grid-template-columns: 1fr; }
+
+  /* Roadmap */
+  .roadmap-steps { grid-template-columns: 1fr; gap: 32px; }
+  .roadmap-line { display: none; }
+  .pstep-num { width: 56px; height: 56px; font-size: 0.95rem; }
+
+  /* Invest */
+  .invest-wrap { gap: 32px; }
+  .invest-stats { }
+  .istat { padding: 22px 24px; }
+  .istat-val { font-size: 1.5rem; }
+
+  /* CTA */
+  .cta-band { margin: 0 18px; padding: 40px 20px; }
+  .cta-title { font-size: clamp(1.5rem, 7vw, 2rem); }
+  .cta-sub { font-size: 0.9rem; }
+  .cta-band .btn-primary { width: 100%; justify-content: center; }
+
+  /* Footer */
+  footer { padding: 32px 18px; flex-direction: column; align-items: flex-start; gap: 20px; }
+  .footer-links { flex-wrap: wrap; gap: 16px; }
+
+  /* Section titles */
+  .section-title { font-size: clamp(1.6rem, 7vw, 2.4rem); }
+  .section-body { font-size: 0.92rem; }
+
+  /* Unified header */
+  .unified-header { margin-bottom: 40px; }
+
+  /* Roadmap intro */
+  .roadmap-intro { margin-bottom: 40px; }
+
+  /* Hide cursor on touch */
+  .cursor, .cursor-trail { display: none; }
 }
 </style>
 </head>
@@ -777,13 +898,26 @@ footer {
     <li><a href="#process">Process</a></li>
     <li><a href="https://samuelmwaz.github.io/unififed/supply_chain_portal">AutoRelief</a></li>
     <li><a href="https://samuelmwaz.github.io/jobconnect-and-events/home">Job Connect and events</a></li>
-    
     <li><a href="https://samuelmwaz.github.io/Project-Unified/home">unified</a></li>
     <li><a href="Young Innovators Program Page.html">young innovators</a></li>
-    <li><a href="Young Innovators Program Page.html"></a></li>
     <li><a href="#contact" class="nav-pill">Get Started</a></li>
   </ul>
+  <button class="nav-hamburger" id="hamburger" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <a href="#services" class="mobile-link">Services</a>
+  <a href="#about" class="mobile-link">About</a>
+  <a href="#process" class="mobile-link">Process</a>
+  <a href="https://samuelmwaz.github.io/unififed/supply_chain_portal" class="mobile-link">AutoRelief</a>
+  <a href="https://samuelmwaz.github.io/jobconnect-and-events/home" class="mobile-link">Job Connect</a>
+  <a href="https://samuelmwaz.github.io/Project-Unified/home" class="mobile-link">Unified</a>
+  <a href="Young Innovators Program Page.html" class="mobile-link">Young Innovators</a>
+  <a href="#contact" class="mobile-link nav-pill-mobile">Get Started</a>
+</div>
 
 <!-- HERO -->
 <div class="hero">
@@ -1183,7 +1317,7 @@ footer {
     <div class="cta-glow"></div>
     <h2 class="cta-title">Ready to Build the Future?</h2>
     <p class="cta-sub">Partner with ZAST and bring your most ambitious technology vision to life.</p>
-    <a href="mailto:hello@zastsolutions.com" class="btn-primary" style="margin: 0 auto;">
+    <a href="/cdn-cgi/l/email-protection#c4aca1a8a8ab84bea5b7b0b7aba8b1b0adabaab7eaa7aba9" class="btn-primary" style="margin: 0 auto;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
       Start a Project
     </a>
@@ -1204,7 +1338,7 @@ footer {
   <div class="footer-copy">© 2026 Zed Aura Stream Tech. All rights reserved.</div>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── Custom cursor
 const cur = document.getElementById('cur');
 const trail = document.getElementById('curTrail');
@@ -1253,10 +1387,29 @@ window.addEventListener('scroll', () => {
     if (window.scrollY >= s.offsetTop - 120) current = s.getAttribute('id');
   });
   navLinks.forEach(a => {
-    a.style.color = '';
-    if (a.getAttribute('href') === '#' + current) a.style.color = 'var(--c)';
+    const href = a.getAttribute('href');
+    if (href && href.includes(current)) a.style.color = 'var(--c)';
+    else a.style.color = '';
   });
 });
+
+// ── Hamburger menu
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
+if (hamburger && mobileMenu) {
+  hamburger.addEventListener('click', () => {
+    const isOpen = mobileMenu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+    document.body.style.overflow = isOpen ? 'hidden' : '';
+  });
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      hamburger.classList.remove('open');
+      document.body.style.overflow = '';
+    });
+  });
+}
 </script>
 </body>
 </html>
